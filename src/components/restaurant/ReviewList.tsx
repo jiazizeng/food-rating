@@ -23,22 +23,48 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
 
   const fetchReviews = async () => {
     setLoading(true);
+    // Step 1: fetch reviews
     const { data } = await supabase
       .from('reviews')
-      .select('*, user:profiles!reviews_user_id_fkey(*), comments(*, user:profiles(*))')
+      .select('*')
       .eq('restaurant_id', restaurantId)
       .eq('is_approved', true)
       .order('created_at', { ascending: false });
-    if (data) {
-      const mapped = data.map((r: Record<string, unknown>) => {
-        const userId = user?.id;
-        return {
-          ...r,
-          user: r.user || r.profiles,
-          liked_by_me: false,
-        };
-      }) as unknown as Review[];
+
+    if (data && data.length > 0) {
+      const reviews = data as Review[];
+      // Step 2: fetch user profiles separately
+      const userIds = [...new Set(reviews.map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds);
+      const profileMap: Record<string, Profile> = {};
+      (profiles || []).forEach((p: Profile) => { profileMap[p.id] = p; });
+
+      // Step 3: fetch comments
+      const { data: comments } = await supabase
+        .from('comments')
+        .select('*')
+        .in('review_id', reviews.map(r => r.id));
+      const commentMap: Record<string, Comment[]> = {};
+      (comments || []).forEach((c: Comment) => {
+        if (!commentMap[c.review_id]) commentMap[c.review_id] = [];
+        commentMap[c.review_id].push(c);
+      });
+
+      const mapped = reviews.map(r => ({
+        ...r,
+        user: profileMap[r.user_id] || undefined,
+        comments: (commentMap[r.id] || []).map(c => ({
+          ...c,
+          user: profileMap[c.user_id] || undefined,
+        })),
+        liked_by_me: false,
+      })) as unknown as Review[];
       setReviews(mapped);
+    } else {
+      setReviews([]);
     }
     setLoading(false);
   };

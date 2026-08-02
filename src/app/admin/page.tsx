@@ -13,7 +13,7 @@ import {
   ChevronDown, User, MapPin, ExternalLink,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { Restaurant, Review, EatenStatus } from '@/types';
+import type { Restaurant, Review, EatenStatus, Profile } from '@/types';
 
 type TabKey = 'restaurants' | 'reviews';
 
@@ -42,12 +42,32 @@ export default function AdminPage() {
         .order('created_at', { ascending: false }),
       supabase
         .from('reviews')
-        .select('*, user:profiles!reviews_user_id_fkey(*), restaurant:restaurants(*)')
+        .select('*')
         .eq('is_approved', false)
         .order('created_at', { ascending: false }),
     ]);
     if (rRes.data) setPendingRestaurants(rRes.data as Restaurant[]);
-    if (revRes.data) setPendingReviews(revRes.data as Review[]);
+    if (revRes.data && revRes.data.length > 0) {
+      const reviews = revRes.data as Review[];
+      // Fetch user profiles
+      const userIds = [...new Set(reviews.map(r => r.user_id))];
+      const restaurantIds = [...new Set(reviews.map(r => r.restaurant_id))];
+      const [profRes, restRes] = await Promise.all([
+        supabase.from('profiles').select('*').in('id', userIds),
+        supabase.from('restaurants').select('id, name').in('id', restaurantIds),
+      ]);
+      const profileMap: Record<string, Profile> = {};
+      (profRes.data || []).forEach((p: Profile) => { profileMap[p.id] = p; });
+      const restaurantMap: Record<string, { id: string; name: string }> = {};
+      (restRes.data || []).forEach((r: { id: string; name: string }) => { restaurantMap[r.id] = r; });
+      // Merge data
+      const enriched = reviews.map(r => ({
+        ...r,
+        user: profileMap[r.user_id] || undefined,
+        restaurant: restaurantMap[r.restaurant_id] ? { id: r.restaurant_id, name: restaurantMap[r.restaurant_id].name } as unknown as Review['restaurant'] : undefined,
+      }));
+      setPendingReviews(enriched);
+    }
     setLoading(false);
   }, []);
 
