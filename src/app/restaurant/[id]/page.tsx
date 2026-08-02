@@ -199,6 +199,29 @@ export default function RestaurantDetailPage() {
     </div>
   );
 
+  const [localEatenStatus, setLocalEatenStatus] = useState(restaurant?.eaten_status || null);
+
+  useEffect(() => {
+    if (restaurant?.eaten_status !== undefined) setLocalEatenStatus(restaurant.eaten_status);
+  }, [restaurant?.eaten_status]);
+
+  const handleUpdateEaten = async (status: 'eaten' | 'not_eaten') => {
+    if (!isAdmin) return;
+    const now = new Date().toISOString();
+    const newStatus = localEatenStatus === status ? status : status; // just set to the clicked one
+    const { error } = await supabase
+      .from('restaurants')
+      .update({
+        eaten_status: status,
+        eaten_date: status === 'eaten' ? now : null,
+        updated_at: now,
+      })
+      .eq('id', id);
+    if (error) { toast.error('更新失败'); return; }
+    setLocalEatenStatus(status);
+    toast.success(status === 'eaten' ? '已标记为吃过' : '已标记为未吃过');
+  };
+
   const favorited = isFavorited(id);
   const isRed = restaurant.list_type === 'red' || restaurant.avg_rating >= 3.5;
 
@@ -222,11 +245,27 @@ export default function RestaurantDetailPage() {
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {restaurant.cuisine && <span className="rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-xs">{restaurant.cuisine}</span>}
-              {restaurant.eaten_status && (
-                <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur', restaurant.eaten_status === 'eaten' ? 'bg-green-500/80' : 'bg-gray-500/60')}>
-                  {restaurant.eaten_status === 'eaten' ? '✅ 管理员已吃过' : '📋 管理员未吃过'}
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('eaten'); }}
+                    className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',
+                      localEatenStatus === 'eaten' ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60 hover:bg-green-500/60')}>
+                    ✅ 已吃过
+                  </button>
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('not_eaten'); }}
+                    className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',
+                      localEatenStatus === 'not_eaten' ? 'bg-gray-500 text-white' : 'bg-white/20 text-white/60 hover:bg-gray-500/60')}>
+                    📋 未吃过
+                  </button>
+                </>
+              ) : localEatenStatus ? (
+                <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur',
+                  localEatenStatus === 'eaten' ? 'bg-green-500/80' : 'bg-gray-500/60')}>
+                  {localEatenStatus === 'eaten' ? '✅ 管理员已吃过' : '📋 管理员未吃过'}
                 </span>
-              )}
+              ) : null}
               <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold backdrop-blur', isRed ? 'bg-green-500/80' : 'bg-red-500/80')}>
                 {isRed ? '👍 红榜推荐' : '👎 黑榜避雷'}
               </span>

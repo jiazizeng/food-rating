@@ -39,6 +39,7 @@ export interface Restaurant {
   status: RestaurantStatus;
   list_type: ListType | null;
   eaten_status: EatenStatus | null;
+  eaten_date: string | null;
   reviewed_by: string | null;
   red_list_count: number;
   black_list_count: number;
@@ -82,6 +83,7 @@ export interface Review {
   likes_count: number;
   is_approved: boolean;
   eaten_status: EatenStatus | null;
+  eaten_date: string | null;
   reviewed_by: string | null;
   created_at: string;
   updated_at: string;

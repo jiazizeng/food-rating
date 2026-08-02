@@ -335,3 +335,9 @@ ALTER TABLE dish_favorites ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own dish favorites" ON dish_favorites FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own dish favorites" ON dish_favorites FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can delete own dish favorites" ON dish_favorites FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ====================================================================
+-- Migration v1.3: eaten_date column
+-- ====================================================================
+ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS eaten_date TIMESTAMPTZ;
