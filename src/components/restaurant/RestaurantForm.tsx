@@ -125,7 +125,7 @@ export function RestaurantForm() {
     return (
       <div className="text-center py-16">
         <p className="text-gray-500 mb-3">请先登录后再添加餐厅</p>
-        <a href="/login" className="text-indigo-600 font-medium hover:underline">前往登录</a>
+        <a href="/login" className="text-orange-600 font-medium hover:underline">前往登录</a>
       </div>
     );
   }
@@ -169,7 +169,7 @@ export function RestaurantForm() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">餐厅名称 *</label>
         <input name="name" value={form.name} onChange={handleChange} required
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
           placeholder="例如：海底捞火锅" />
       </div>
 
@@ -199,13 +199,13 @@ export function RestaurantForm() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">城市</label>
           <input name="city" value={form.city} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             placeholder="例如：北京" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">地址</label>
           <input name="address" value={form.address} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             placeholder="详细地址" />
         </div>
       </div>
@@ -214,7 +214,7 @@ export function RestaurantForm() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">菜系</label>
           <select name="cuisine" value={form.cuisine} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
             <option value="">选择菜系</option>
             {CUISINE_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -224,7 +224,7 @@ export function RestaurantForm() {
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">¥</span>
             <input name="avg_price" type="number" value={form.avg_price} onChange={handleChange}
-              className="w-full rounded-lg border border-gray-200 pl-7 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-200 pl-7 pr-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
               placeholder="0" />
           </div>
         </div>
@@ -233,7 +233,7 @@ export function RestaurantForm() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">营业时间</label>
         <input name="business_hours" value={form.business_hours} onChange={handleChange}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
           placeholder="例如：11:00-22:00" />
       </div>
 
@@ -241,13 +241,13 @@ export function RestaurantForm() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">电话</label>
           <input name="phone" value={form.phone} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             placeholder="联系电话" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">网站</label>
           <input name="website" value={form.website} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             placeholder="官网链接" />
         </div>
       </div>
@@ -255,12 +255,12 @@ export function RestaurantForm() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">简介</label>
         <textarea name="description" value={form.description} onChange={handleChange} rows={3}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none resize-none"
           placeholder="简单介绍一下这家餐厅..." />
       </div>
 
       <button type="submit" disabled={submitting}
-        className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+        className="w-full rounded-lg bg-orange-600 py-3 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50 transition-colors">
         {submitting ? '提交中...' : '添加餐厅'}
       </button>
     </form>

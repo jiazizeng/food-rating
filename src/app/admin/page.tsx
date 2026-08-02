@@ -204,7 +204,7 @@ export default function AdminPage() {
           className={cn(
             'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
             activeTab === 'restaurants'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-orange-600 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           )}
         >
@@ -220,7 +220,7 @@ export default function AdminPage() {
           className={cn(
             'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
             activeTab === 'reviews'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-orange-600 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           )}
         >
@@ -357,7 +357,7 @@ function RestaurantApprovalCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Link href={`/restaurant/${restaurant.id}`} className="font-semibold text-gray-900 hover:text-indigo-600 truncate">
+              <Link href={`/restaurant/${restaurant.id}`} className="font-semibold text-gray-900 hover:text-orange-600 truncate">
                 {restaurant.name}
               </Link>
               <span className={cn(
@@ -449,14 +449,14 @@ function ReviewApprovalCard({
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-[10px] font-bold text-orange-600">
               {getInitials(review.user?.display_name || review.user?.username || 'U')}
             </div>
             <span className="text-sm font-medium text-gray-900">
               {review.user?.display_name || review.user?.username || '匿名'}
             </span>
             <span className="text-xs text-gray-400">评价了</span>
-            <Link href={`/restaurant/${review.restaurant_id}`} className="text-sm font-medium text-indigo-600 hover:underline">
+            <Link href={`/restaurant/${review.restaurant_id}`} className="text-sm font-medium text-orange-600 hover:underline">
               {review.restaurant?.name || '未知餐厅'}
             </Link>
           </div>

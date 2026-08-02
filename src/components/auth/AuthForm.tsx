@@ -32,7 +32,7 @@ export function LoginForm() {
           <input
             type="email" required value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
             placeholder="your@email.com"
           />
         </div>
@@ -42,7 +42,7 @@ export function LoginForm() {
             <input
               type={showPw ? 'text' : 'password'} required value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
               placeholder="••••••••"
             />
             <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -52,7 +52,7 @@ export function LoginForm() {
         </div>
         <button
           type="submit" disabled={loading}
-          className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
         >
           {loading ? '登录中...' : '登录'}
         </button>
@@ -83,7 +83,7 @@ export function LoginForm() {
 
       <p className="mt-5 text-center text-sm text-gray-500">
         还没有账号？
-        <Link href="/register" className="ml-1 font-medium text-indigo-600 hover:text-indigo-500">立即注册</Link>
+        <Link href="/register" className="ml-1 font-medium text-orange-600 hover:text-orange-500">立即注册</Link>
       </p>
     </div>
   );
@@ -115,7 +115,7 @@ export function RegisterForm() {
           <input
             type="text" required value={username}
             onChange={e => setUsername(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
             placeholder="你的昵称"
           />
         </div>
@@ -124,7 +124,7 @@ export function RegisterForm() {
           <input
             type="email" required value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
             placeholder="your@email.com"
           />
         </div>
@@ -133,20 +133,20 @@ export function RegisterForm() {
           <input
             type="password" required value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
             placeholder="至少6个字符"
           />
         </div>
         <button
           type="submit" disabled={loading}
-          className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
         >
           {loading ? '注册中...' : '注册'}
         </button>
       </form>
       <p className="mt-5 text-center text-sm text-gray-500">
         已有账号？
-        <Link href="/login" className="ml-1 font-medium text-indigo-600 hover:text-indigo-500">立即登录</Link>
+        <Link href="/login" className="ml-1 font-medium text-orange-600 hover:text-orange-500">立即登录</Link>
       </p>
     </div>
   );

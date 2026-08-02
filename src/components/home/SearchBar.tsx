@@ -23,7 +23,7 @@ export function SearchBar() {
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="搜索餐厅、菜系或城市..."
-        className="w-full rounded-full border border-gray-200 bg-white pl-12 pr-5 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+        className="w-full rounded-full border border-gray-200 bg-white pl-12 pr-5 py-3 text-sm shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
       />
     </form>
   );

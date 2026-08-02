@@ -33,7 +33,7 @@ export default function AuthCallbackPage() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="text-center">
-        <div className="h-10 w-10 mx-auto animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
+        <div className="h-10 w-10 mx-auto animate-spin rounded-full border-4 border-gray-200 border-t-orange-600" />
         <p className="mt-4 text-sm text-gray-500">正在登录...</p>
       </div>
     </div>

@@ -63,9 +63,9 @@ export default function StatsPage() {
 
       {/* Overview cards */}
       <div className="grid grid-cols-3 gap-4 mb-10">
-        <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-5 text-white">
+        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-5 text-white">
           <p className="text-3xl font-bold">{stats?.totalRestaurants || 0}</p>
-          <p className="text-sm text-indigo-100 mt-1">收录餐厅</p>
+          <p className="text-sm text-orange-100 mt-1">收录餐厅</p>
         </div>
         <div className="rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 p-5 text-white">
           <p className="text-3xl font-bold">{stats?.totalReviews || 0}</p>

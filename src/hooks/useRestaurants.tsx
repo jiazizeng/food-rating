@@ -13,6 +13,8 @@ interface UseRestaurantsOptions {
   sort?: 'rating' | 'newest' | 'reviews';
   page?: number;
   limit?: number;
+  priceRange?: string;
+  minRating?: number;
 }
 
 export function useRestaurants(options: UseRestaurantsOptions = {}) {
@@ -23,7 +25,7 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
 
   const {
     listType, cuisine, city, search, sort = 'rating',
-    page = 1, limit = ITEMS_PER_PAGE,
+    page = 1, limit = ITEMS_PER_PAGE, priceRange, minRating,
   } = options;
 
   const fetchRestaurants = useCallback(async () => {
@@ -41,7 +43,16 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
 
     if (cuisine) query = query.eq('cuisine', cuisine);
     if (city) query = query.ilike('city', `%${city}%`);
-    if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+    if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,city.ilike.%${search}%`);
+
+    // Price range filter
+    if (priceRange === 'low') query = query.lt('avg_price', 50);
+    else if (priceRange === 'medium') query = query.gte('avg_price', 50).lt('avg_price', 100);
+    else if (priceRange === 'high') query = query.gte('avg_price', 100).lt('avg_price', 200);
+    else if (priceRange === 'luxury') query = query.gte('avg_price', 200);
+
+    // Rating filter
+    if (minRating) query = query.gte('avg_rating', minRating);
 
     if (sort === 'newest') query = query.order('created_at', { ascending: false });
     else if (sort === 'reviews') query = query.order('review_count', { ascending: false });
@@ -51,12 +62,10 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
     const to = from + limit - 1;
     const { data, count } = await query.range(from, to);
 
-    if (data) {
-      setRestaurants(data as Restaurant[]);
-    }
+    if (data) setRestaurants(data as Restaurant[]);
     if (count !== null) setTotal(count);
     setLoading(false);
-  }, [listType, cuisine, city, search, sort, page, limit]);
+  }, [listType, cuisine, city, search, sort, page, limit, priceRange, minRating]);
 
   useEffect(() => {
     fetchRestaurants();

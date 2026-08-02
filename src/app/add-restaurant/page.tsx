@@ -8,8 +8,8 @@ export default function AddRestaurantPage() {
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
-            <PlusCircle className="h-5 w-5 text-indigo-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+            <PlusCircle className="h-5 w-5 text-orange-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">添加餐厅</h1>
         </div>

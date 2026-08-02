@@ -68,6 +68,11 @@ export interface Review {
   restaurant_id: string;
   food_id: string | null;
   rating: number;
+  taste_rating: number;
+  environment_rating: number;
+  service_rating: number;
+  value_rating: number;
+  would_revisit: boolean;
   list_type: ListType;
   title: string | null;
   content: string | null;

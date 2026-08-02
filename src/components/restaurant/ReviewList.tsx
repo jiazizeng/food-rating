@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { StarRating } from '@/components/shared/StarRating';
 import { formatRelativeTime, cn, getInitials } from '@/lib/utils';
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Flag, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Heart, MessageCircle, Flag, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ReviewListProps {
@@ -23,7 +23,6 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
 
   const fetchReviews = async () => {
     setLoading(true);
-    // Step 1: fetch reviews
     const { data } = await supabase
       .from('reviews')
       .select('*')
@@ -33,7 +32,6 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
 
     if (data && data.length > 0) {
       const reviews = data as Review[];
-      // Step 2: fetch user profiles separately
       const userIds = [...new Set(reviews.map(r => r.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
@@ -42,7 +40,6 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
       const profileMap: Record<string, Profile> = {};
       (profiles || []).forEach((p: Profile) => { profileMap[p.id] = p; });
 
-      // Step 3: fetch comments
       const { data: comments } = await supabase
         .from('comments')
         .select('*')
@@ -118,14 +115,35 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
   };
 
   if (loading) {
-    return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="h-32 animate-pulse rounded-xl bg-gray-100" />)}</div>;
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 animate-pulse">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-10 w-10 rounded-full bg-gray-200" />
+              <div className="space-y-2">
+                <div className="h-4 w-24 rounded bg-gray-200" />
+                <div className="h-3 w-16 rounded bg-gray-100" />
+              </div>
+            </div>
+            <div className="h-4 w-full rounded bg-gray-100 mb-2" />
+            <div className="h-4 w-3/4 rounded bg-gray-100" />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (reviews.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-400">
-        <p className="text-lg">暂无评价</p>
-        <p className="text-sm mt-1">成为第一个评价的人吧</p>
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white/50 p-12 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 mx-auto mb-4">
+          <MessageCircle className="h-8 w-8 text-gray-300" />
+        </div>
+        <p className="text-gray-500 font-medium">成为第一个分享体验的人</p>
+        <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">
+          写下你的真实用餐体验，帮助更多人找到值得吃的地方
+        </p>
       </div>
     );
   }
@@ -134,13 +152,13 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
     <div className="space-y-4">
       {reviews.map(review => (
         <div key={review.id} className={cn(
-          'rounded-xl border p-4',
-          review.list_type === 'red' ? 'border-green-100 bg-green-50/30' : 'border-red-100 bg-red-50/30'
+          'rounded-2xl border p-5 transition-all',
+          review.list_type === 'red' ? 'border-green-100 bg-white hover:border-green-200' : 'border-red-100 bg-white hover:border-red-200'
         )}>
           {/* Header */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600 shrink-0">
                 {review.user ? getInitials(review.user.display_name || review.user.username || 'U') : 'U'}
               </div>
               <div>
@@ -150,47 +168,70 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
                   </span>
                   <span className={cn(
                     'rounded-full px-2 py-0.5 text-[10px] font-bold',
-                    review.list_type === 'red' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                    review.list_type === 'red' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                   )}>
-                    {review.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
+                    {review.list_type === 'red' ? '👍 推荐' : '👎 避雷'}
                   </span>
                 </div>
                 <StarRating rating={review.rating} size="sm" />
               </div>
             </div>
-            <span className="text-xs text-gray-400">{formatRelativeTime(review.created_at)}</span>
+            <span className="text-xs text-gray-400 shrink-0">{formatRelativeTime(review.created_at)}</span>
           </div>
 
+          {/* Dimension scores if available */}
+          {(review.taste_rating || review.environment_rating || review.service_rating || review.value_rating) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 p-3 rounded-xl bg-gray-50/50">
+              {review.taste_rating && (
+                <span className="text-xs text-gray-600">🍜 味道 <span className="font-bold text-gray-800">{review.taste_rating}</span>/10</span>
+              )}
+              {review.environment_rating && (
+                <span className="text-xs text-gray-600">🏠 环境 <span className="font-bold text-gray-800">{review.environment_rating}</span>/10</span>
+              )}
+              {review.service_rating && (
+                <span className="text-xs text-gray-600">👋 服务 <span className="font-bold text-gray-800">{review.service_rating}</span>/10</span>
+              )}
+              {review.value_rating && (
+                <span className="text-xs text-gray-600">💰 性价比 <span className="font-bold text-gray-800">{review.value_rating}</span>/10</span>
+              )}
+              {review.would_revisit !== undefined && (
+                <span className={cn('text-xs font-medium', review.would_revisit ? 'text-green-600' : 'text-red-500')}>
+                  {review.would_revisit ? '👍 愿意再来' : '👎 不再来了'}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Title & Content */}
-          {review.title && <h4 className="font-medium text-gray-900 mb-1">{review.title}</h4>}
+          {review.title && <h4 className="font-medium text-gray-900 mb-1.5">{review.title}</h4>}
           {review.content && <p className="text-sm text-gray-600 leading-relaxed">{review.content}</p>}
 
           {/* Images */}
           {review.images && review.images.length > 0 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto">
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
               {review.images.map((img, i) => (
-                <img key={i} src={img} alt="" className="h-24 w-24 rounded-lg object-cover shrink-0" />
+                <img key={i} src={img} alt="" loading="lazy" className="h-24 w-24 rounded-xl object-cover shrink-0" />
               ))}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-            <button onClick={() => handleLike(review.id)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors">
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
+            <button onClick={() => handleLike(review.id)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors">
               <Heart className={cn('h-3.5 w-3.5', review.liked_by_me && 'fill-red-500 text-red-500')} />
               {review.likes_count || 0}
             </button>
-            <button onClick={() => setActiveReply(activeReply === review.id ? null : review.id)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-indigo-500 transition-colors">
+            <button onClick={() => setActiveReply(activeReply === review.id ? null : review.id)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-orange-500 transition-colors">
               <MessageCircle className="h-3.5 w-3.5" /> 回复
             </button>
-            <button onClick={() => handleReport(review.id)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-orange-500 transition-colors">
+            <button onClick={() => handleReport(review.id)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-orange-500 transition-colors">
               <Flag className="h-3.5 w-3.5" /> 举报
             </button>
           </div>
 
           {/* Comments */}
           {(review as Review & { comments?: Comment[] }).comments && (review as Review & { comments?: Comment[] }).comments!.length > 0 && (
-            <div className="mt-3 space-y-2 pl-4 border-l-2 border-gray-100">
+            <div className="mt-3 space-y-2 pl-4 border-l-2 border-orange-100">
               {(review as Review & { comments?: Comment[] }).comments!.map(comment => (
                 <div key={comment.id} className="text-sm">
                   <span className="font-medium text-gray-700 mr-1">{(comment.user as Profile)?.display_name || '匿名'}:</span>
@@ -207,9 +248,10 @@ export function ReviewList({ restaurantId }: ReviewListProps) {
                 type="text" value={replyContent}
                 onChange={e => setReplyContent(e.target.value)}
                 placeholder="写下你的回复..."
-                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                onKeyDown={e => { if (e.key === 'Enter') handleReply(review.id); }}
               />
-              <button onClick={() => handleReply(review.id)} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+              <button onClick={() => handleReply(review.id)} className="rounded-lg bg-orange-600 px-3 py-2 text-xs font-medium text-white hover:bg-orange-700 transition-colors">
                 发送
               </button>
             </div>

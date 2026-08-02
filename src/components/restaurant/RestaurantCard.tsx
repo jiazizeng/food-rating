@@ -2,11 +2,10 @@
 
 import type { Restaurant } from '@/types';
 import { formatPrice, cn } from '@/lib/utils';
-import { StarRating } from '@/components/shared/StarRating';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
-import { Heart, MapPin, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Heart, MapPin, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface RestaurantCardProps {
@@ -27,13 +26,10 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
     toast.success(added ? '已收藏' : '已取消收藏');
   };
 
-  const isRed = listType === 'red';
-  const isBlack = listType === 'black';
-
   return (
     <Link
       href={`/restaurant/${restaurant.id}`}
-      className="group block rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all duration-200"
+      className="group block rounded-2xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all duration-200"
     >
       {/* Cover image */}
       <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -41,26 +37,31 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
           <img
             src={restaurant.cover_image}
             alt={restaurant.name}
-            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-400"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl bg-gradient-to-br from-gray-50 to-gray-100">
-            🍽️
+          <div className="flex h-full w-full items-center justify-center text-4xl bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+            <span className="opacity-60">🍽️</span>
           </div>
         )}
-        {/* Badge */}
-        {(restaurant.list_type) && (
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        {/* List type badge */}
+        {restaurant.list_type && (
           <div className={cn(
-            'absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-bold text-white',
+            'absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-white shadow-sm',
             restaurant.list_type === 'red' ? 'bg-green-500' : 'bg-red-500'
           )}>
             {restaurant.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
           </div>
         )}
+
         {/* Favorite button */}
         <button
           onClick={handleFavorite}
-          className="absolute top-3 right-3 rounded-full bg-white/90 p-2 shadow-sm hover:bg-white transition-colors"
+          className="absolute top-2.5 right-2.5 rounded-full bg-white/90 p-2 shadow-sm hover:bg-white hover:scale-110 transition-all"
         >
           <Heart
             className={cn(
@@ -69,36 +70,58 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
             )}
           />
         </button>
+
+        {/* Price badge */}
+        {restaurant.avg_price && (
+          <div className="absolute bottom-2.5 right-2.5 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 text-[11px] font-medium text-white">
+            ¥{restaurant.avg_price}/人
+          </div>
+        )}
       </div>
 
-      <div className="p-4">
-        {/* Category & price */}
+      <div className="p-3.5">
+        {/* Cuisine tag */}
         <div className="flex items-center gap-2 mb-1.5">
-          {restaurant.cuisine && (
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
+          {restaurant.cuisine ? (
+            <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-600">
               {restaurant.cuisine}
             </span>
+          ) : (
+            <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-400">
+              未分类
+            </span>
           )}
-          {restaurant.avg_price && (
-            <span className="text-xs text-gray-400">{formatPrice(restaurant.avg_price)}/人</span>
-          )}
+          <span className="text-[10px] text-gray-400">{restaurant.review_count} 评价</span>
         </div>
 
         {/* Name */}
-        <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
+        <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors text-sm leading-tight line-clamp-1">
           {restaurant.name}
         </h3>
 
         {/* Rating */}
-        <div className="mt-1.5 flex items-center gap-2">
-          <StarRating rating={Math.round(restaurant.avg_rating)} size="sm" />
-          <span className="text-xs text-gray-400">{restaurant.review_count} 条评价</span>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map(s => (
+              <Star
+                key={s}
+                className={cn(
+                  'h-3 w-3',
+                  s <= Math.round(restaurant.avg_rating)
+                    ? 'text-amber-400 fill-amber-400'
+                    : 'text-gray-200'
+                )}
+              />
+            ))}
+          </div>
+          <span className="text-xs font-bold text-amber-600">{restaurant.avg_rating > 0 ? restaurant.avg_rating.toFixed(1) : '-'}</span>
         </div>
 
-        {/* Address */}
+        {/* City */}
         {restaurant.city && (
-          <div className="mt-2 flex items-center gap-1 text-xs text-gray-400">
-            <MapPin className="h-3 w-3" /> {restaurant.city}{restaurant.address ? ` · ${restaurant.address.slice(0, 15)}` : ''}
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-gray-400">
+            <MapPin className="h-3 w-3" />
+            <span className="truncate">{restaurant.city}</span>
           </div>
         )}
       </div>

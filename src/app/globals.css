@@ -2,8 +2,15 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #111827;
+  --color-background: #faf7f2;
+  --color-foreground: #1a1a1a;
+  --color-surface: #ffffff;
+  --color-primary: #ea580c;
+  --color-primary-hover: #c2410c;
+  --color-accent-green: #16a34a;
+  --color-accent-red: #dc2626;
+  --color-accent-amber: #d97706;
+  --color-muted: #78716c;
 }
 
 body {
@@ -13,4 +20,67 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-foreground);
   background: var(--color-background);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Leaflet fix for Next.js */
+.leaflet-container {
+  z-index: 0;
+}
+
+/* Image loading placeholder */
+img {
+  image-rendering: auto;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
 }

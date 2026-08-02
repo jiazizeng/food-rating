@@ -70,7 +70,7 @@ export function Header() {
           {user && (
             <Link
               href="/add-restaurant"
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors ml-2"
+              className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors ml-2"
             >
               <PlusCircle className="h-4 w-4" />
               添加餐厅
@@ -95,7 +95,7 @@ export function Header() {
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 transition-colors"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 text-xs font-semibold text-white">
                   {getInitials(profile.display_name || profile.username || 'U')}
                 </div>
                 <span className="hidden sm:inline text-sm font-medium text-gray-700 max-w-[100px] truncate">
@@ -149,7 +149,7 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+              className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
             >
               登录
             </Link>
@@ -187,7 +187,7 @@ export function Header() {
               <Link
                 href="/add-restaurant"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-medium text-white mt-1"
+                className="flex items-center gap-2 rounded-lg bg-orange-600 px-3 py-2.5 text-sm font-medium text-white mt-1"
               >
                 <PlusCircle className="h-4 w-4" /> 添加餐厅
               </Link>

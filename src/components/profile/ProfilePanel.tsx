@@ -118,7 +118,7 @@ export function ProfilePanel() {
     <div className="mx-auto max-w-4xl">
       {/* Profile header */}
       <div className="flex items-center gap-4 mb-8 p-6 rounded-2xl bg-white border border-gray-100">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-600 text-xl font-bold text-white">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-600 text-xl font-bold text-white">
           {getInitials(profile.display_name || profile.username || 'U')}
         </div>
         <div>
@@ -139,7 +139,7 @@ export function ProfilePanel() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === tab.key
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-orange-600 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -155,7 +155,7 @@ export function ProfilePanel() {
         ) : myReviews.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p>还没有发布过评价</p>
-            <Link href="/red-list" className="text-indigo-600 text-sm hover:underline mt-2 inline-block">去看看美食红黑榜</Link>
+            <Link href="/red-list" className="text-orange-600 text-sm hover:underline mt-2 inline-block">去看看美食红黑榜</Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -192,7 +192,7 @@ export function ProfilePanel() {
         ) : favRestaurants.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p>还没有收藏餐厅</p>
-            <Link href="/red-list" className="text-indigo-600 text-sm hover:underline mt-2 inline-block">去发现好餐厅</Link>
+            <Link href="/red-list" className="text-orange-600 text-sm hover:underline mt-2 inline-block">去发现好餐厅</Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -228,7 +228,7 @@ export function ProfilePanel() {
         ) : mySubmissions.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p>还没有提交过餐厅</p>
-            <Link href="/add-restaurant" className="text-indigo-600 text-sm hover:underline mt-2 inline-block">去添加餐厅</Link>
+            <Link href="/add-restaurant" className="text-orange-600 text-sm hover:underline mt-2 inline-block">去添加餐厅</Link>
           </div>
         ) : (
           <div className="space-y-3">

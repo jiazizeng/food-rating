@@ -101,13 +101,13 @@ export default function MapPage() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="搜索地点，例如：三里屯、南京西路..."
-              className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             />
           </div>
           <button
             type="submit"
             disabled={searching || !searchQuery.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
           >
             <Navigation className="h-4 w-4" />
             {searching ? '搜索中...' : '定位'}

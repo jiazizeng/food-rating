@@ -1,27 +1,50 @@
-import { PackageOpen } from 'lucide-react';
+'use client';
+
+import { cn } from '@/lib/utils';
+import { SearchX, Utensils, MessageSquare, Heart } from 'lucide-react';
 import Link from 'next/link';
 
 interface EmptyStateProps {
-  icon?: React.ReactNode;
-  title: string;
+  title?: string;
   description?: string;
-  action?: { label: string; href: string };
+  icon?: 'search' | 'food' | 'review' | 'heart';
+  actionLabel?: string;
+  actionHref?: string;
+  className?: string;
 }
 
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+const icons = {
+  search: SearchX,
+  food: Utensils,
+  review: MessageSquare,
+  heart: Heart,
+};
+
+export function EmptyState({
+  title = '暂无内容',
+  description,
+  icon = 'food',
+  actionLabel,
+  actionHref,
+  className,
+}: EmptyStateProps) {
+  const Icon = icons[icon];
+
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="mb-4 text-gray-300">
-        {icon || <PackageOpen className="h-16 w-16" />}
+    <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-100 mb-5">
+        <Icon className="h-10 w-10 text-gray-300" />
       </div>
-      <h3 className="text-lg font-medium text-gray-600">{title}</h3>
-      {description && <p className="mt-1 text-sm text-gray-400 max-w-sm">{description}</p>}
-      {action && (
+      <p className="text-lg font-medium text-gray-500">{title}</p>
+      {description && (
+        <p className="mt-2 text-sm text-gray-400 max-w-xs">{description}</p>
+      )}
+      {actionLabel && actionHref && (
         <Link
-          href={action.href}
-          className="mt-4 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+          href={actionHref}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
         >
-          {action.label}
+          {actionLabel}
         </Link>
       )}
     </div>

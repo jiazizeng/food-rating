@@ -67,7 +67,7 @@ function MapInner({ restaurants, center, zoom, className }: RestaurantMapProps) 
         >
           <Popup>
             <div className="min-w-[180px]">
-              <a href={`/restaurant/${r.id}`} className="font-semibold text-sm text-indigo-600 hover:underline">
+              <a href={`/restaurant/${r.id}`} className="font-semibold text-sm text-orange-600 hover:underline">
                 {r.name}
               </a>
               <div className="text-xs text-gray-500 mt-1">

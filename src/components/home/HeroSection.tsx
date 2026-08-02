@@ -3,7 +3,7 @@ import { Search, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/30 to-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-orange-50/30 to-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
