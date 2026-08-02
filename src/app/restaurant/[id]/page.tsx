@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  MapPin, Phone, Globe, Clock, Heart, Share2, ExternalLink, Trash2, ArrowLeft,
+  MapPin, Phone, Globe, Clock, Heart, Share2, ExternalLink, Trash2, ArrowLeft, Clock as ClockIcon, CheckCircle, XCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -97,6 +97,30 @@ export default function RestaurantDetailPage() {
         </div>
 
         <div className="p-6">
+          {/* Status banner for pending/rejected restaurants */}
+          {(restaurant.status === 'pending' || restaurant.status === 'rejected') && (user?.id === restaurant.created_by || isAdmin) && (
+            <div className={`mb-4 rounded-lg px-4 py-3 flex items-center gap-3 ${
+              restaurant.status === 'pending' ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'
+            }`}>
+              {restaurant.status === 'pending' ? (
+                <>
+                  <ClockIcon className="h-5 w-5 text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">审核中</p>
+                    <p className="text-xs text-amber-600">你的提交正在等待管理员审核，通过后将对所有人可见。</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">已驳回</p>
+                    <p className="text-xs text-red-600">此餐厅未通过管理员审核，不会公开展示。</p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <StarRating rating={Math.round(restaurant.avg_rating)} size="lg" showValue />
             <span className="text-sm text-gray-500">{restaurant.review_count} 条评价</span>

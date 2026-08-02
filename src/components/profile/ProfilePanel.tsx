@@ -5,35 +5,51 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { createClient } from '@/lib/supabase/client';
 import { formatDate, getInitials } from '@/lib/utils';
 import { useState, useEffect } from 'react';
-import { Review } from '@/types';
+import { Review, Restaurant } from '@/types';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { StarRating } from '@/components/shared/StarRating';
 import Link from 'next/link';
-import { Heart, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Heart, MessageSquare, ThumbsUp, ThumbsDown, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-type Tab = 'reviews' | 'favorites' | 'contributions';
+type Tab = 'reviews' | 'favorites' | 'contributions' | 'submissions';
 
 export function ProfilePanel() {
   const { user, profile } = useAuth();
   const { favorites } = useFavorites();
   const [activeTab, setActiveTab] = useState<Tab>('reviews');
   const [myReviews, setMyReviews] = useState<Review[]>([]);
+  const [mySubmissions, setMySubmissions] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    if (!user || activeTab !== 'reviews') return;
-    const fetchReviews = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from('reviews')
-        .select('*, restaurant:restaurants(*)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (data) setMyReviews(data as Review[]);
-      setLoading(false);
-    };
-    fetchReviews();
+    if (!user) return;
+    if (activeTab === 'reviews') {
+      const fetchReviews = async () => {
+        setLoading(true);
+        const { data } = await supabase
+          .from('reviews')
+          .select('*, restaurant:restaurants(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        if (data) setMyReviews(data as Review[]);
+        setLoading(false);
+      };
+      fetchReviews();
+    }
+    if (activeTab === 'submissions') {
+      const fetchSubmissions = async () => {
+        setLoading(true);
+        const { data } = await supabase
+          .from('restaurants')
+          .select('*')
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: false });
+        if (data) setMySubmissions(data as Restaurant[]);
+        setLoading(false);
+      };
+      fetchSubmissions();
+    }
   }, [user, activeTab]);
 
   if (!user || !profile) {
@@ -48,6 +64,7 @@ export function ProfilePanel() {
     { key: 'reviews', label: '我的评价', icon: <MessageSquare className="h-4 w-4" /> },
     { key: 'favorites', label: '我的收藏', icon: <Heart className="h-4 w-4" /> },
     { key: 'contributions', label: '我的贡献', icon: <ThumbsUp className="h-4 w-4" /> },
+    { key: 'submissions', label: '我的提交', icon: <FileText className="h-4 w-4" /> },
   ];
 
   const redCount = myReviews.filter(r => r.list_type === 'red').length;
