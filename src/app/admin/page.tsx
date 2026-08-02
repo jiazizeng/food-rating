@@ -344,7 +344,7 @@ function RestaurantApprovalCard({
       'rounded-xl border bg-white p-5',
       isPending ? 'border-amber-200' : isRejected ? 'border-red-100 bg-red-50/30' : 'border-green-100'
     )}>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex gap-4 flex-1 min-w-0">
           {/* Cover thumbnail */}
           <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100 overflow-hidden">
@@ -356,7 +356,7 @@ function RestaurantApprovalCard({
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <Link href={`/restaurant/${restaurant.id}`} className="font-semibold text-gray-900 hover:text-orange-600 truncate">
                 {restaurant.name}
               </Link>
@@ -399,7 +399,7 @@ function RestaurantApprovalCard({
 
         {/* Actions */}
         {isPending && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             <EatenStatusSelect value={eatenStatus} onChange={setEatenStatus} />
             <button
               onClick={() => {
@@ -420,7 +420,7 @@ function RestaurantApprovalCard({
         )}
 
         {!isPending && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 sm:shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             <span className="text-xs text-gray-400">{formatDate(restaurant.updated_at)} 审核</span>
             <button
               onClick={() => onDelete(restaurant.id)}
@@ -446,9 +446,9 @@ function ReviewApprovalCard({
 
   return (
     <div className="rounded-xl border border-amber-200 bg-white p-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-[10px] font-bold text-orange-600">
               {getInitials(review.user?.display_name || review.user?.username || 'U')}
             </div>
@@ -485,7 +485,7 @@ function ReviewApprovalCard({
           <p className="text-xs text-gray-400 mt-2">{formatRelativeTime(review.created_at)}</p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
           <EatenStatusSelect value={eatenStatus} onChange={setEatenStatus} />
           <button
             onClick={() => {
