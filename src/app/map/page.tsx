@@ -6,8 +6,8 @@ import { Loading } from '@/components/shared/Loading';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import type { Restaurant } from '@/types';
 import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from '@/lib/constants';
-import { useEffect, useState } from 'react';
-import { MapPin, Search, Navigation, X } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { MapPin, Search, Navigation, X, LocateFixed, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function MapPage() {
@@ -18,6 +18,8 @@ export default function MapPage() {
   const [mapCenter, setMapCenter] = useState<[number, number]>(MAP_DEFAULT_CENTER);
   const [mapKey, setMapKey] = useState(0);
   const [searchResult, setSearchResult] = useState<{ name: string; lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [locating, setLocating] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function MapPage() {
         lng,
       });
       setMapCenter([lat, lng]);
-      setMapKey(prev => prev + 1); // force map remount with new center
+      setMapKey(prev => prev + 1);
       toast.success(`已定位到 ${first.display_name.split(',')[0]}`);
     } catch {
       toast.error('搜索失败，请稍后重试');
@@ -70,9 +72,57 @@ export default function MapPage() {
     }
   };
 
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error('你的浏览器不支持定位功能');
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        setUserLocation([lat, lng]);
+        setMapCenter([lat, lng]);
+        setSearchResult({
+          name: '我的位置',
+          lat,
+          lng,
+        });
+        setMapKey(prev => prev + 1);
+        setLocating(false);
+        toast.success('已定位到你的当前位置');
+      },
+      (error) => {
+        setLocating(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error('定位被拒绝，请在浏览器设置中允许定位权限');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error('无法获取位置信息，请检查网络');
+            break;
+          case error.TIMEOUT:
+            toast.error('定位超时，请重试');
+            break;
+          default:
+            toast.error('定位失败，请稍后重试');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  }, []);
+
   const handleResetMap = () => {
     setSearchResult(null);
     setSearchQuery('');
+    setUserLocation(null);
     setMapCenter(MAP_DEFAULT_CENTER);
     setMapKey(prev => prev + 1);
   };
@@ -88,13 +138,15 @@ export default function MapPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">美食地图</h1>
         </div>
-        <p className="text-sm text-gray-500">搜索地点或在地图上探索附近的餐厅</p>
+        <p className="text-sm text-gray-500">
+          搜索地点、使用定位功能或在地图上探索附近的餐厅
+        </p>
       </div>
 
-      {/* Search bar */}
+      {/* Search bar + locate me */}
       <div className="mb-4">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1 max-w-md">
+        <form onSubmit={handleSearch} className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -112,6 +164,22 @@ export default function MapPage() {
             <Navigation className="h-4 w-4" />
             {searching ? '搜索中...' : '定位'}
           </button>
+
+          {/* Locate Me button */}
+          <button
+            type="button"
+            onClick={handleLocateMe}
+            disabled={locating}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 disabled:opacity-50 transition-colors"
+          >
+            {locating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LocateFixed className="h-4 w-4" />
+            )}
+            {locating ? '定位中...' : '我的位置'}
+          </button>
+
           {searchResult && (
             <button
               type="button"
@@ -124,7 +192,10 @@ export default function MapPage() {
         </form>
         {searchResult && (
           <p className="mt-2 text-xs text-gray-500">
-            当前定位：<span className="font-medium text-gray-700">{searchResult.name}</span>
+            当前定位：
+            <span className="font-medium text-gray-700">
+              {searchResult.name}
+            </span>
           </p>
         )}
       </div>
@@ -136,6 +207,7 @@ export default function MapPage() {
           restaurants={restaurants}
           center={mapCenter}
           zoom={searchResult ? 15 : MAP_DEFAULT_ZOOM}
+          userLocation={userLocation}
           className="h-[500px] w-full rounded-xl border border-gray-200"
         />
       </div>
