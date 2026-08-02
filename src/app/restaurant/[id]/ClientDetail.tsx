@@ -10,6 +10,7 @@ import { ReviewList } from '@/components/restaurant/ReviewList';
 import { PageLoading } from '@/components/shared/Loading';
 import { formatPrice, cn, getNavigationUrls } from '@/lib/utils';
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   MapPin, Phone, Globe, Clock, Heart, Share2,
@@ -28,7 +29,8 @@ interface DimScores {
   total: number;
 }
 
-export default function ClientDetail({ id }: { id: string }) {
+export default function ClientDetail() {
+  const { id } = useParams() as { id: string };
   const { restaurant, loading } = useRestaurant(id);
   const { user, isAdmin } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
