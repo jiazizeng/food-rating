@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import type { Restaurant } from '@/types';
 import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from '@/lib/constants';
+import { getNavigationUrls } from '@/lib/utils';
+import { Navigation, ExternalLink } from 'lucide-react';
 
 const MapContainer = dynamic(
   () => import('react-leaflet').then(m => m.MapContainer),
@@ -87,25 +89,45 @@ function MapInner({ restaurants, center, zoom, className, userLocation }: Restau
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {restaurants.filter(r => r.latitude && r.longitude).map(r => (
-          <Marker
-            key={r.id}
-            position={[r.latitude!, r.longitude!]}
-            icon={r.avg_rating >= 4.0 ? redIcon : defaultIcon}
-          >
-            <Popup>
-              <div className="min-w-[180px]">
-                <a href={`/restaurant/${r.id}`} className="font-semibold text-sm text-orange-600 hover:underline">
-                  {r.name}
-                </a>
-                <div className="text-xs text-gray-500 mt-1">
-                  ⭐ {r.avg_rating.toFixed(1)} · {r.cuisine || '未知'} · ¥{r.avg_price || '?'}/人
+        {restaurants.filter(r => r.latitude && r.longitude).map(r => {
+          const navUrls = getNavigationUrls(r.latitude!, r.longitude!, r.name);
+          return (
+            <Marker
+              key={r.id}
+              position={[r.latitude!, r.longitude!]}
+              icon={r.avg_rating >= 4.0 ? redIcon : defaultIcon}
+            >
+              <Popup maxWidth={240} minWidth={200}>
+                <div className="min-w-[190px]">
+                  <a href={`/restaurant/${r.id}`} className="font-semibold text-sm text-orange-600 hover:underline">
+                    {r.name}
+                  </a>
+                  <div className="text-xs text-gray-500 mt-1">
+                    ⭐ {r.avg_rating.toFixed(1)} · {r.cuisine || '未知'} · ¥{r.avg_price || '?'}/人
+                  </div>
+                  {r.address && <p className="text-xs text-gray-400 mt-0.5 mb-2">{r.address}</p>}
+                  {/* 导航按钮 */}
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-[10px] text-gray-400 mb-1.5">导航到此处</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {navUrls.slice(0, 3).map(app => (
+                        <a
+                          key={app.name}
+                          href={app.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                          {app.icon} {app.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                {r.address && <p className="text-xs text-gray-400 mt-0.5">{r.address}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
 
         {userLocation && (
           <Marker position={userLocation} icon={userIcon}>

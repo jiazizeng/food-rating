@@ -8,12 +8,12 @@ import { StarRating } from '@/components/shared/StarRating';
 import { ReviewForm } from '@/components/restaurant/ReviewForm';
 import { ReviewList } from '@/components/restaurant/ReviewList';
 import { PageLoading } from '@/components/shared/Loading';
-import { formatPrice, cn, getMapUrl } from '@/lib/utils';
+import { formatPrice, cn, getNavigationUrls } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  MapPin, Phone, Globe, Clock, Heart, Share2, ExternalLink,
+  MapPin, Phone, Globe, Clock, Heart, Share2,
   Trash2, ArrowLeft, Clock as ClockIcon, XCircle,
   Star, Utensils,
 } from 'lucide-react';
@@ -259,10 +259,20 @@ export default function RestaurantDetailPage() {
           )}
 
           {restaurant.latitude && restaurant.longitude && (
-            <a href={getMapUrl(restaurant.latitude, restaurant.longitude)} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-orange-600 hover:underline">
-              <ExternalLink className="h-3 w-3" /> 在地图中查看
-            </a>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-400">导航到此处：</span>
+              {getNavigationUrls(restaurant.latitude, restaurant.longitude, restaurant.name).slice(0, 3).map(app => (
+                <a
+                  key={app.name}
+                  href={app.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  {app.icon} {app.label}
+                </a>
+              ))}
+            </div>
           )}
         </div>
       </div>

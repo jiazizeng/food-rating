@@ -63,3 +63,40 @@ export function getAvatarUrl(url: string | null | undefined): string {
 export function getMapUrl(lat: number, lng: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
 }
+
+export interface MapAppOption {
+  name: string;
+  label: string;
+  icon: string;
+  url: string;
+}
+
+export function getNavigationUrls(lat: number, lng: number, name?: string): MapAppOption[] {
+  const encodedName = name ? encodeURIComponent(name) : '目的地';
+  return [
+    {
+      name: 'gaode',
+      label: '高德地图',
+      icon: '🗺️',
+      url: `https://uri.amap.com/navigation?to=${lng},${lat},${encodedName}&mode=car&callnative=1`,
+    },
+    {
+      name: 'baidu',
+      label: '百度地图',
+      icon: '📍',
+      url: `https://api.map.baidu.com/direction?destination=latlng:${lat},${lng}|name:${encodedName}&mode=driving&output=html&src=food-rating`,
+    },
+    {
+      name: 'apple',
+      label: 'Apple 地图',
+      icon: '🧭',
+      url: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`,
+    },
+    {
+      name: 'google',
+      label: 'Google 地图',
+      icon: '🌐',
+      url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+    },
+  ];
+}
