@@ -1,11 +1,12 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 import { cn, getInitials } from '@/lib/utils';
 import { APP_NAME } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Menu, X, Search, User, LogOut, PlusCircle, Heart,
   BarChart3, MapPin, ThumbsUp, ThumbsDown, ChevronDown,
@@ -23,6 +24,22 @@ export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const supabase = createClient();
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from('restaurants')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      if (count !== null) setPendingCount(count);
+    };
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000); // poll every 30s
+    return () => clearInterval(interval);
+  }, [isAdmin]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
@@ -111,6 +128,11 @@ export function Header() {
                         onClick={() => setProfileOpen(false)}
                       >
                         <BarChart3 className="h-4 w-4" /> 管理面板
+                        {pendingCount > 0 && (
+                          <span className="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            {pendingCount}
+                          </span>
+                        )}
                       </Link>
                     )}
                     <hr className="my-1 border-gray-100" />
