@@ -1,13 +1,17 @@
-'use client';
-
-import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import ClientDetail from './ClientDetail';
 import { PageLoading } from '@/components/shared/Loading';
 
-const ClientDetail = dynamic(() => import('./ClientDetail'), {
-  ssr: false,
-  loading: () => <PageLoading />,
-});
+export default async function RestaurantPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-export default function RestaurantPage() {
-  return <ClientDetail />;
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ClientDetail id={id} />
+    </Suspense>
+  );
 }

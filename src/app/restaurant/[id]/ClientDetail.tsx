@@ -11,14 +11,13 @@ import { PageLoading } from '@/components/shared/Loading';
 import { formatPrice, cn, getNavigationUrls } from '@/lib/utils';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import {
   MapPin, Phone, Globe, Clock, Heart, Share2,
   Trash2, ArrowLeft, Clock as ClockIcon, XCircle,
-  Star, Utensils, Plus, ImagePlus, X, Pencil,
+  Star, Utensils, Plus, ImagePlus, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { Food, DishFavorite } from '@/types';
+import type { Food } from '@/types';
 
 interface DimScores {
   taste: number;
@@ -29,9 +28,7 @@ interface DimScores {
   total: number;
 }
 
-export default function ClientDetail() {
-  const params = useParams();
-  const id = params.id as string;
+export default function ClientDetail({ id }: { id: string }) {
   const { restaurant, loading } = useRestaurant(id);
   const { user, isAdmin } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
@@ -56,10 +53,7 @@ export default function ClientDetail() {
 
   useEffect(() => {
     if (user && id) {
-      supabase.from('browse_history').insert({
-        user_id: user.id,
-        restaurant_id: id,
-      }); void 0;
+      supabase.from('browse_history').insert({ user_id: user.id, restaurant_id: id }); void 0;
     }
   }, [user, id]);
 
@@ -143,19 +137,14 @@ export default function ClientDetail() {
         imageUrl = urlData.publicUrl;
       }
       const { error } = await supabase.from('foods').insert({
-        restaurant_id: id,
-        name: newDish.name.trim(),
-        description: newDish.description || null,
+        restaurant_id: id, name: newDish.name.trim(), description: newDish.description || null,
         price: newDish.price ? parseFloat(newDish.price) : null,
-        rating: parseFloat(newDish.rating) || 5,
-        image: imageUrl,
+        rating: parseFloat(newDish.rating) || 5, image: imageUrl,
       });
       if (error) throw error;
       toast.success('菜品添加成功');
       setNewDish({ name: '', description: '', price: '', rating: '5' });
-      setDishImage(null);
-      setDishPreview(null);
-      setShowAddDish(false);
+      setDishImage(null); setDishPreview(null); setShowAddDish(false);
       fetchFoods();
     } catch (err: any) {
       toast.error(err.message || '添加失败');
@@ -182,21 +171,15 @@ export default function ClientDetail() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('图片不能超过5MB'); return; }
-    setDishImage(file);
-    setDishPreview(URL.createObjectURL(file));
+    setDishImage(file); setDishPreview(URL.createObjectURL(file));
   };
 
   const handleUpdateEaten = async (status: 'eaten' | 'not_eaten') => {
     if (!isAdmin) return;
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from('restaurants')
-      .update({
-        eaten_status: status,
-        eaten_date: status === 'eaten' ? now : null,
-        updated_at: now,
-      })
-      .eq('id', id);
+    const { error } = await supabase.from('restaurants').update({
+      eaten_status: status, eaten_date: status === 'eaten' ? now : null, updated_at: now,
+    }).eq('id', id);
     if (error) { toast.error('更新失败'); return; }
     setLocalEatenStatus(status);
     toast.success(status === 'eaten' ? '已标记为吃过' : '已标记为未吃过');
@@ -221,7 +204,6 @@ export default function ClientDetail() {
         <ArrowLeft className="h-4 w-4" /> 返回
       </Link>
 
-      {/* Hero */}
       <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 mb-6">
         <div className="relative aspect-[21/9] bg-gray-100">
           {restaurant.cover_image ? (
@@ -237,18 +219,12 @@ export default function ClientDetail() {
               {restaurant.cuisine && <span className="rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-xs">{restaurant.cuisine}</span>}
               {isAdmin ? (
                 <>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('eaten'); }}
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('eaten'); }}
                     className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',
-                      localEatenStatus === 'eaten' ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60 hover:bg-green-500/60')}>
-                    ✅ 已吃过
-                  </button>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('not_eaten'); }}
+                      localEatenStatus === 'eaten' ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60 hover:bg-green-500/60')}>✅ 已吃过</button>
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('not_eaten'); }}
                     className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',
-                      localEatenStatus === 'not_eaten' ? 'bg-gray-500 text-white' : 'bg-white/20 text-white/60 hover:bg-gray-500/60')}>
-                    📋 未吃过
-                  </button>
+                      localEatenStatus === 'not_eaten' ? 'bg-gray-500 text-white' : 'bg-white/20 text-white/60 hover:bg-gray-500/60')}>📋 未吃过</button>
                 </>
               ) : localEatenStatus ? (
                 <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur',
@@ -268,20 +244,13 @@ export default function ClientDetail() {
           {(restaurant.status === 'pending' || restaurant.status === 'rejected') && (user?.id === restaurant.created_by || isAdmin) && (
             <div className={cn('mb-4 rounded-lg px-4 py-3 flex items-center gap-3', restaurant.status === 'pending' ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200')}>
               {restaurant.status === 'pending' ? (
-                <>
-                  <ClockIcon className="h-5 w-5 text-amber-500 shrink-0" />
-                  <div><p className="text-sm font-medium text-amber-800">审核中</p><p className="text-xs text-amber-600">你的提交正在等待管理员审核。</p></div>
-                </>
+                <><ClockIcon className="h-5 w-5 text-amber-500 shrink-0" /><div><p className="text-sm font-medium text-amber-800">审核中</p><p className="text-xs text-amber-600">你的提交正在等待管理员审核。</p></div></>
               ) : (
-                <>
-                  <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                  <div><p className="text-sm font-medium text-red-800">已驳回</p><p className="text-xs text-red-600">此餐厅未通过管理员审核。</p></div>
-                </>
+                <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="text-sm font-medium text-red-800">已驳回</p><p className="text-xs text-red-600">此餐厅未通过管理员审核。</p></div></>
               )}
             </div>
           )}
 
-          {/* Rating bar */}
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={cn('h-5 w-5', s <= Math.round(restaurant.avg_rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200')} />)}</div>
@@ -302,7 +271,6 @@ export default function ClientDetail() {
             )}
           </div>
 
-          {/* Info */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {restaurant.address && <div className="flex items-start gap-2 text-sm"><MapPin className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" /><span className="text-gray-600">{restaurant.address}</span></div>}
             {restaurant.phone && <div className="flex items-center gap-2 text-sm"><Phone className="h-4 w-4 text-gray-400 shrink-0" /><span className="text-gray-600">{restaurant.phone}</span></div>}
@@ -311,7 +279,6 @@ export default function ClientDetail() {
           </div>
           {restaurant.description && <p className="text-sm text-gray-600 leading-relaxed mb-4">{restaurant.description}</p>}
 
-          {/* Submitter info */}
           {(restaurant.created_by || restaurant.created_at) && (
             <div className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-gray-50/50">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600 shrink-0">
@@ -336,14 +303,12 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         <div className="rounded-xl bg-green-50 border border-green-100 px-4 py-3 text-center"><p className="text-2xl font-bold text-green-600">{restaurant.red_list_count}</p><p className="text-xs text-green-500">红榜推荐</p></div>
         <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-center"><p className="text-2xl font-bold text-red-600">{restaurant.black_list_count}</p><p className="text-xs text-red-500">黑榜避雷</p></div>
         <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-center"><p className="text-2xl font-bold text-blue-600">{restaurant.review_count}</p><p className="text-xs text-blue-500">总评价</p></div>
       </div>
 
-      {/* Dim scores */}
       {dimScores && dimScores.total > 0 && (
         <div className="rounded-2xl border border-gray-100 bg-white p-6 mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">评价维度</h2>
@@ -358,38 +323,24 @@ export default function ClientDetail() {
         </div>
       )}
 
-      {/* Dish management */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Utensils className="h-5 w-5 text-orange-500" />
-            <h2 className="text-lg font-bold text-gray-900">菜品</h2>
-            <span className="text-xs text-gray-400">({foods.length})</span>
-          </div>
-          {user && (
-            <button onClick={() => setShowAddDish(!showAddDish)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-2 text-xs font-medium text-white hover:bg-orange-700 transition-colors">
-              <Plus className="h-3.5 w-3.5" /> 添加菜品
-            </button>
-          )}
+          <div className="flex items-center gap-2"><Utensils className="h-5 w-5 text-orange-500" /><h2 className="text-lg font-bold text-gray-900">菜品</h2><span className="text-xs text-gray-400">({foods.length})</span></div>
+          {user && (<button onClick={() => setShowAddDish(!showAddDish)} className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-2 text-xs font-medium text-white hover:bg-orange-700 transition-colors"><Plus className="h-3.5 w-3.5" /> 添加菜品</button>)}
         </div>
 
         {showAddDish && (
           <form onSubmit={handleAddDish} className="mb-5 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-              <input type="text" value={newDish.name} onChange={e => setNewDish(p => ({ ...p, name: e.target.value }))}
-                placeholder="菜品名称 *" required className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none" />
+              <input type="text" value={newDish.name} onChange={e => setNewDish(p => ({ ...p, name: e.target.value }))} placeholder="菜品名称 *" required className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none" />
               <div className="flex gap-2">
-                <input type="number" value={newDish.price} onChange={e => setNewDish(p => ({ ...p, price: e.target.value }))}
-                  placeholder="价格" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none" />
-                <select value={newDish.rating} onChange={e => setNewDish(p => ({ ...p, rating: e.target.value }))}
-                  className="w-20 rounded-lg border border-gray-200 px-2 py-2 text-sm bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                <input type="number" value={newDish.price} onChange={e => setNewDish(p => ({ ...p, price: e.target.value }))} placeholder="价格" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none" />
+                <select value={newDish.rating} onChange={e => setNewDish(p => ({ ...p, rating: e.target.value }))} className="w-20 rounded-lg border border-gray-200 px-2 py-2 text-sm bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
                   {[10,9.5,9,8.5,8,7.5,7,6.5,6,5.5,5,4,3,2,1].map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
               </div>
             </div>
-            <input type="text" value={newDish.description} onChange={e => setNewDish(p => ({ ...p, description: e.target.value }))}
-              placeholder="简短描述（选填）" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none mb-3" />
+            <input type="text" value={newDish.description} onChange={e => setNewDish(p => ({ ...p, description: e.target.value }))} placeholder="简短描述（选填）" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none mb-3" />
             <div className="flex items-center gap-3">
               {dishPreview ? (
                 <div className="relative h-16 w-16 rounded-lg overflow-hidden"><img src={dishPreview} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => { setDishImage(null); setDishPreview(null); }} className="absolute top-0 right-0 rounded-full bg-black/50 p-0.5 text-white"><X className="h-3 w-3" /></button></div>
@@ -414,18 +365,14 @@ export default function ClientDetail() {
                 <div className="relative h-16 w-16 shrink-0 rounded-lg bg-gray-100 overflow-hidden">
                   {food.image ? <img src={food.image} alt={food.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-2xl">🍱</div>}
                   {user && (
-                    <button onClick={() => toggleDishFavorite(food.id)}
-                      className="absolute top-0.5 right-0.5 rounded-full bg-white/80 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => toggleDishFavorite(food.id)} className="absolute top-0.5 right-0.5 rounded-full bg-white/80 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Heart className={cn('h-3 w-3', dishFavIds.has(food.id) ? 'fill-red-500 text-red-500' : 'text-gray-400')} />
                     </button>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm truncate">{food.name}</p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-bold text-amber-600">{food.rating.toFixed(1)}</span>
-                  </div>
+                  <div className="flex items-center gap-1 mt-0.5"><Star className="h-3 w-3 text-amber-400 fill-amber-400" /><span className="text-xs font-bold text-amber-600">{food.rating.toFixed(1)}</span></div>
                   {food.description && <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{food.description}</p>}
                   <div className="flex items-center gap-2 mt-0.5">
                     {food.price && <p className="text-xs text-gray-500">¥{food.price}</p>}
@@ -438,13 +385,10 @@ export default function ClientDetail() {
         )}
       </div>
 
-      {/* Reviews */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">用户评价</h2>
-          {user && !showReviewForm && (
-            <button onClick={() => setShowReviewForm(true)} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors">写评价</button>
-          )}
+          {user && !showReviewForm && (<button onClick={() => setShowReviewForm(true)} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors">写评价</button>)}
         </div>
         {showReviewForm && <div className="mb-6"><ReviewForm restaurantId={id} onSuccess={() => setShowReviewForm(false)} onCancel={() => setShowReviewForm(false)} /></div>}
         <ReviewList restaurantId={id} />
