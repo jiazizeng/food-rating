@@ -1,13 +1,19 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
 import { PageLoading } from '@/components/shared/Loading';
-
-const ClientDetail = dynamic(() => import('./ClientDetail'), {
-  ssr: false,
-  loading: () => <PageLoading />,
-});
+import ClientDetail from './ClientDetail';
 
 export default function RestaurantPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <PageLoading />;
+  }
+
   return <ClientDetail />;
 }
