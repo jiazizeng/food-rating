@@ -240,15 +240,16 @@ CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- restaurants: 所有人可读已批准的，创建者可更新
-CREATE POLICY "Approved restaurants are viewable" ON restaurants FOR SELECT USING (status = 'approved' OR auth.uid() = created_by);
+CREATE POLICY "Approved restaurants are viewable" ON restaurants FOR SELECT USING (status = 'approved' OR auth.uid() = created_by OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 CREATE POLICY "Authenticated users can insert" ON restaurants FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Creator can update" ON restaurants FOR UPDATE USING (auth.uid() = created_by);
+CREATE POLICY "Creator can update" ON restaurants FOR UPDATE USING (auth.uid() = created_by OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+CREATE POLICY "Admin can delete" ON restaurants FOR DELETE USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 
 -- reviews: 所有人可读已批准的
-CREATE POLICY "Approved reviews are viewable" ON reviews FOR SELECT USING (is_approved = true OR auth.uid() = user_id);
+CREATE POLICY "Approved reviews are viewable" ON reviews FOR SELECT USING (is_approved = true OR auth.uid() = user_id OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 CREATE POLICY "Authenticated users can insert reviews" ON reviews FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Users can update own reviews" ON reviews FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete own reviews" ON reviews FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own reviews" ON reviews FOR UPDATE USING (auth.uid() = user_id OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+CREATE POLICY "Users can delete own reviews" ON reviews FOR DELETE USING (auth.uid() = user_id OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 
 -- favorites: 用户管理自己的收藏
 CREATE POLICY "Users can view own favorites" ON favorites FOR SELECT USING (auth.uid() = user_id);

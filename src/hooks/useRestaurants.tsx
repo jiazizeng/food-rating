@@ -30,7 +30,7 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
     setLoading(true);
     let query = supabase
       .from('restaurants')
-      .select('*, profiles:created_by(*)', { count: 'exact' })
+      .select('*', { count: 'exact' })
       .eq('status', 'approved');
 
     if (listType === 'red') {
@@ -52,11 +52,7 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
     const { data, count } = await query.range(from, to);
 
     if (data) {
-      const mapped = data.map((r: Record<string, unknown>) => ({
-        ...r,
-        created_by_profile: r.profiles,
-      })) as unknown as Restaurant[];
-      setRestaurants(mapped);
+      setRestaurants(data as Restaurant[]);
     }
     if (count !== null) setTotal(count);
     setLoading(false);
@@ -80,13 +76,12 @@ export function useRestaurant(id: string) {
       setLoading(true);
       const { data } = await supabase
         .from('restaurants')
-        .select('*, profiles:created_by(*), tags:restaurant_tags(tag:tags(*))')
+        .select('*, tags:restaurant_tags(tag:tags(*))')
         .eq('id', id)
         .single();
       if (data) {
         const mapped = {
           ...data,
-          created_by_profile: data.profiles,
           tags: data.tags?.map((t: { tag: unknown }) => t.tag) || [],
         } as unknown as Restaurant;
         setRestaurant(mapped);

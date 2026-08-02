@@ -38,7 +38,7 @@ export default function AdminPage() {
     const [rRes, revRes] = await Promise.all([
       supabase
         .from('restaurants')
-        .select('*, profiles:created_by(*)')
+        .select('*')
         .order('created_at', { ascending: false }),
       supabase
         .from('reviews')
@@ -370,7 +370,7 @@ function RestaurantApprovalCard({
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 <User className="h-3 w-3" />
-                {restaurant.created_by_profile?.display_name || restaurant.created_by_profile?.username || '匿名'}
+                {restaurant.created_by ? restaurant.created_by.slice(0, 8) + '...' : '匿名'}
               </span>
               <span>{formatRelativeTime(restaurant.created_at)}</span>
             </div>
