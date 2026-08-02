@@ -314,3 +314,24 @@ CREATE POLICY "Users can insert own history" ON browse_history FOR INSERT WITH C
 -- (gen_random_uuid(), 'The Rug 西餐厅', '朝阳区朝阳公园南路6号', '北京', '西餐', 220, '京城老牌Brunch，班尼迪克蛋和松饼是招牌，环境适合约会。', 39.9427, 116.4768, 'approved', true, 'REPLACE_WITH_YOUR_USER_ID', 4.0, 4, 3, 1),
 -- (gen_random_uuid(), 'XX海鲜自助', '浦东新区陆家嘴环路168号', '上海', '海鲜', 298, '说是海鲜自助，大部分是冷冻货，龙虾还要加钱，不值这个价。', 31.2397, 121.5015, 'approved', true, 'REPLACE_WITH_YOUR_USER_ID', 2.0, 2, 0, 2),
 -- (gen_random_uuid(), '明洞韩国料理', '朝阳区望京街10号', '北京', '韩餐', 85, '望京韩国人开的店，炸鸡啤酒和部队锅很正宗，泡菜无限续。', 39.9974, 116.4793, 'approved', true, 'REPLACE_WITH_YOUR_USER_ID', 4.1, 3, 3, 0);
+
+
+-- ====================================================================
+-- Migration v1.2: Dish Favorites 菜品收藏表
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS dish_favorites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  food_id UUID REFERENCES foods(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, food_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dish_favorites_user ON dish_favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_dish_favorites_food ON dish_favorites(food_id);
+
+ALTER TABLE dish_favorites ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own dish favorites" ON dish_favorites FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own dish favorites" ON dish_favorites FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own dish favorites" ON dish_favorites FOR DELETE USING (auth.uid() = user_id);

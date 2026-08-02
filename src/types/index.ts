@@ -46,7 +46,6 @@ export interface Restaurant {
   review_count: number;
   created_at: string;
   updated_at: string;
-  // joined fields
   created_by_profile?: Profile;
   tags?: Tag[];
 }
@@ -60,6 +59,9 @@ export interface Food {
   image: string | null;
   rating: number;
   created_at: string;
+  // joined
+  is_favorited?: boolean;
+  restaurant_name?: string;
 }
 
 export interface Review {
@@ -83,7 +85,6 @@ export interface Review {
   reviewed_by: string | null;
   created_at: string;
   updated_at: string;
-  // joined
   user?: Profile;
   reviewed_by_profile?: Profile;
   restaurant?: Restaurant;
@@ -115,6 +116,14 @@ export interface Favorite {
   restaurant_id: string;
   created_at: string;
   restaurant?: Restaurant;
+}
+
+export interface DishFavorite {
+  id: string;
+  user_id: string;
+  food_id: string;
+  created_at: string;
+  food?: Food;
 }
 
 export interface Report {
