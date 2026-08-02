@@ -109,7 +109,12 @@ export function RestaurantForm() {
       toast.success('餐厅添加成功！等待审核通过后即可展示');
       router.push(`/restaurant/${data.id}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '添加失败';
+      let message = '添加失败';
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        message = String((err as { message: unknown }).message);
+      }
       toast.error(message);
     } finally {
       setSubmitting(false);
