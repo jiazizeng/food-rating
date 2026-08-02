@@ -1,0 +1,90 @@
+'use client';
+
+import dynamic from 'next/dynamic';
+import type { Restaurant } from '@/types';
+import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from '@/lib/constants';
+
+const MapContainer = dynamic(
+  () => import('react-leaflet').then(m => m.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import('react-leaflet').then(m => m.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import('react-leaflet').then(m => m.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import('react-leaflet').then(m => m.Popup),
+  { ssr: false }
+);
+
+interface RestaurantMapProps {
+  restaurants: Restaurant[];
+  center?: [number, number];
+  zoom?: number;
+  className?: string;
+}
+
+function MapInner({ restaurants, center, zoom, className }: RestaurantMapProps) {
+  const L = typeof window !== 'undefined' ? require('leaflet') : null;
+
+  const defaultIcon = L ? new L.Icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  }) : undefined;
+
+  const redIcon = L ? new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  }) : undefined;
+
+  return (
+    <MapContainer
+      center={center || MAP_DEFAULT_CENTER}
+      zoom={zoom || MAP_DEFAULT_ZOOM}
+      className={className || 'h-[600px] w-full rounded-xl'}
+      scrollWheelZoom={true}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {restaurants.filter(r => r.latitude && r.longitude).map(r => (
+        <Marker
+          key={r.id}
+          position={[r.latitude!, r.longitude!]}
+          icon={r.avg_rating >= 4.0 ? redIcon : defaultIcon}
+        >
+          <Popup>
+            <div className="min-w-[180px]">
+              <a href={`/restaurant/${r.id}`} className="font-semibold text-sm text-indigo-600 hover:underline">
+                {r.name}
+              </a>
+              <div className="text-xs text-gray-500 mt-1">
+                ⭐ {r.avg_rating.toFixed(1)} · {r.cuisine || '未知'} · ¥{r.avg_price || '?'}/人
+              </div>
+              {r.address && <p className="text-xs text-gray-400 mt-0.5">{r.address}</p>}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
+}
+
+export function RestaurantMap(props: RestaurantMapProps) {
+  if (typeof window === 'undefined') {
+    return <div className="h-[600px] w-full rounded-xl bg-gray-100 animate-pulse" />;
+  }
+  return <MapInner {...props} />;
+}
