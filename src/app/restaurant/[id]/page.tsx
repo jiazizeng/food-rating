@@ -46,7 +46,7 @@ export default function RestaurantDetailPage() {
   );
 
   const favorited = isFavorited(id);
-  const isRed = restaurant.avg_rating >= 3.5;
+  const isRed = restaurant.list_type === 'red' || restaurant.avg_rating >= 3.5;
 
   const handleFavorite = async () => {
     if (!user) { toast.error('请先登录'); return; }

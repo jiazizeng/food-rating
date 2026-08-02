@@ -34,9 +34,9 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
       .eq('status', 'approved');
 
     if (listType === 'red') {
-      query = query.gt('avg_rating', 3.5).order('avg_rating', { ascending: false });
+      query = query.or('list_type.eq.red,and(avg_rating.gt.3.5)').order('avg_rating', { ascending: false });
     } else if (listType === 'black') {
-      query = query.lt('avg_rating', 2.5).order('avg_rating', { ascending: true });
+      query = query.or('list_type.eq.black,and(avg_rating.lt.2.5)').order('avg_rating', { ascending: true });
     }
 
     if (cuisine) query = query.eq('cuisine', cuisine);

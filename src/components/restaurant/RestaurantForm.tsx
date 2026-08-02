@@ -17,6 +17,7 @@ export function RestaurantForm() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const supabase = createClient();
 
+  const [listType, setListType] = useState<'red' | 'black'>('red');
   const [form, setForm] = useState({
     name: '',
     address: '',
@@ -100,6 +101,7 @@ export function RestaurantForm() {
         latitude: lat,
         longitude: lng,
         created_by: user.id,
+        list_type: listType,
         status: profile?.role === 'admin' ? 'approved' : 'pending',
       }).select('id').single();
 
@@ -125,6 +127,39 @@ export function RestaurantForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
+      {/* Red/Black toggle */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">红黑榜分类 *</label>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setListType('red')}
+            className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${
+              listType === 'red'
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-200 bg-white hover:border-green-200'
+            }`}
+          >
+            <span className="text-2xl">👍</span>
+            <p className={`text-sm font-bold mt-1 ${listType === 'red' ? 'text-green-700' : 'text-gray-500'}`}>红榜推荐</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">推荐好餐厅</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setListType('black')}
+            className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${
+              listType === 'black'
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white hover:border-red-200'
+            }`}
+          >
+            <span className="text-2xl">👎</span>
+            <p className={`text-sm font-bold mt-1 ${listType === 'black' ? 'text-red-700' : 'text-gray-500'}`}>黑榜避雷</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">帮大家避坑</p>
+          </button>
+        </div>
+      </div>
+
       {/* Name */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">餐厅名称 *</label>

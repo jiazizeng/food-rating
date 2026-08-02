@@ -37,6 +37,7 @@ export interface Restaurant {
   created_by: string | null;
   is_approved: boolean;
   status: RestaurantStatus;
+  list_type: ListType | null;
   eaten_status: EatenStatus | null;
   reviewed_by: string | null;
   red_list_count: number;

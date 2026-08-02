@@ -54,6 +54,7 @@ CREATE TABLE restaurants (
   created_by UUID REFERENCES auth.users(id),
   is_approved BOOLEAN DEFAULT false,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  list_type TEXT CHECK (list_type IN ('red', 'black')),
   eaten_status TEXT CHECK (eaten_status IN ('eaten', 'not_eaten')),
   reviewed_by UUID REFERENCES auth.users(id),
   red_list_count INTEGER DEFAULT 0,

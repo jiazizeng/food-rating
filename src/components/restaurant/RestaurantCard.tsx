@@ -49,12 +49,12 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
           </div>
         )}
         {/* Badge */}
-        {(isRed || isBlack) && (
+        {(restaurant.list_type) && (
           <div className={cn(
             'absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-bold text-white',
-            isRed ? 'bg-green-500' : 'bg-red-500'
+            restaurant.list_type === 'red' ? 'bg-green-500' : 'bg-red-500'
           )}>
-            {isRed ? '👍 红榜' : '👎 黑榜'}
+            {restaurant.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
           </div>
         )}
         {/* Favorite button */}
