@@ -4,10 +4,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { CUISINE_TYPES } from '@/lib/constants';
 import { validateImage } from '@/lib/validators';
-import { useState } from 'react';
-import { ImagePlus, X, MapPin, Loader2, Search } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ImagePlus, X, MapPin, Loader2, Search, Plus, Star, Utensils, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+
+interface DishInput {
+  id: string; // temp id for React key
+  name: string;
+  description: string;
+  price: string;
+  rating: string;
+  imageFile: File | null;
+  imagePreview: string | null;
+}
 
 export function RestaurantForm() {
   const { user, profile } = useAuth();
@@ -38,6 +48,11 @@ export function RestaurantForm() {
   const [geocoding, setGeocoding] = useState(false);
   const [geoStatus, setGeoStatus] = useState<'idle' | 'success' | 'failed'>('idle');
 
+  // Multi-dish state
+  const [dishes, setDishes] = useState<DishInput[]>([
+    { id: 'dish-1', name: '', description: '', price: '', rating: '8', imageFile: null, imagePreview: null },
+  ]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -49,6 +64,41 @@ export function RestaurantForm() {
     if (!validation.valid) { toast.error(validation.error!); return; }
     setCoverImage(file);
     setCoverPreview(URL.createObjectURL(file));
+  };
+
+  const addDish = () => {
+    setDishes(prev => [...prev, {
+      id: `dish-${Date.now()}`,
+      name: '',
+      description: '',
+      price: '',
+      rating: '8',
+      imageFile: null,
+      imagePreview: null,
+    }]);
+  };
+
+  const removeDish = (id: string) => {
+    setDishes(prev => prev.filter(d => d.id !== id));
+  };
+
+  const updateDish = (id: string, field: keyof DishInput, value: string | File | null) => {
+    setDishes(prev => prev.map(d => {
+      if (d.id !== id) return d;
+      if (field === 'imageFile') {
+        const file = value as File | null;
+        if (file) {
+          const validation = validateImage(file);
+          if (!validation.valid) { toast.error(validation.error!); return d; }
+        }
+        return {
+          ...d,
+          imageFile: file,
+          imagePreview: file ? URL.createObjectURL(file) : null,
+        };
+      }
+      return { ...d, [field]: value as string };
+    }));
   };
 
   const handleGeocode = async () => {
@@ -81,15 +131,15 @@ export function RestaurantForm() {
     }
   };
 
-  const uploadCover = async (): Promise<string | null> => {
-    if (!coverImage) return null;
-    const fileName = `${user!.id}/restaurants/${Date.now()}-${coverImage.name}`;
+  const uploadImage = async (file: File, folder: string): Promise<string | null> => {
+    if (!file || !user) return null;
+    const fileName = `${user.id}/${folder}/${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage
-      .from('restaurant-images')
-      .upload(fileName, coverImage);
+      .from('review-images')
+      .upload(fileName, file);
     if (error) throw error;
     const { data: urlData } = supabase.storage
-      .from('restaurant-images')
+      .from('review-images')
       .getPublicUrl(data.path);
     return urlData.publicUrl;
   };
@@ -99,9 +149,19 @@ export function RestaurantForm() {
     if (!user) { toast.error('请先登录'); return; }
     if (!form.name.trim()) { toast.error('请输入餐厅名称'); return; }
 
+    // Validate dish names
+    const validDishes = dishes.filter(d => d.name.trim());
+    for (const d of validDishes) {
+      if (!d.name.trim()) { toast.error('请填写所有菜品的名称'); return; }
+    }
+
     setSubmitting(true);
     try {
-      const coverUrl = await uploadCover();
+      // Upload cover
+      let coverUrl: string | null = null;
+      if (coverImage) {
+        coverUrl = await uploadImage(coverImage, 'restaurants');
+      }
 
       const lat = form.latitude ? parseFloat(form.latitude) : null;
       const lng = form.longitude ? parseFloat(form.longitude) : null;
@@ -128,7 +188,25 @@ export function RestaurantForm() {
       }).select('id').single();
 
       if (error) throw error;
-      toast.success('餐厅添加成功！等待审核通过后即可展示');
+
+      // Upload dish images and create dishes
+      for (const dish of validDishes) {
+        let dishImageUrl: string | null = null;
+        if (dish.imageFile) {
+          dishImageUrl = await uploadImage(dish.imageFile, 'foods');
+        }
+        await supabase.from('foods').insert({
+          restaurant_id: data.id,
+          name: dish.name.trim(),
+          description: dish.description || null,
+          price: dish.price ? parseFloat(dish.price) : null,
+          rating: parseFloat(dish.rating) || 5,
+          image: dishImageUrl,
+        });
+      }
+
+      const dishCount = validDishes.length;
+      toast.success(`餐厅添加成功！${dishCount > 0 ? `附带 ${dishCount} 道菜品。` : ''}等待审核通过后即可展示`);
       router.push(`/restaurant/${data.id}`);
     } catch (err: unknown) {
       let message = '添加失败';
@@ -239,63 +317,37 @@ export function RestaurantForm() {
           <span className="text-sm font-medium text-gray-700">坐标定位（用于地图导航）</span>
         </div>
         <p className="text-xs text-gray-500 mb-3">
-          填写地址后点击「自动获取」，或手动输入经纬度。有了坐标才能在详情页使用高德/百度地图一键导航。
+          填写地址后点击「自动获取」，或手动输入经纬度。
         </p>
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <label className="block text-[11px] text-gray-500 mb-0.5">纬度 (Latitude)</label>
-            <input
-              name="latitude"
-              value={form.latitude}
-              onChange={handleChange}
-              type="number"
-              step="any"
+            <input name="latitude" value={form.latitude} onChange={handleChange} type="number" step="any"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              placeholder="例如：39.9042"
-            />
+              placeholder="例如：39.9042" />
           </div>
           <div>
             <label className="block text-[11px] text-gray-500 mb-0.5">经度 (Longitude)</label>
-            <input
-              name="longitude"
-              value={form.longitude}
-              onChange={handleChange}
-              type="number"
-              step="any"
+            <input name="longitude" value={form.longitude} onChange={handleChange} type="number" step="any"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              placeholder="例如：116.4074"
-            />
+              placeholder="例如：116.4074" />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleGeocode}
-            disabled={geocoding}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
+          <button type="button" onClick={handleGeocode} disabled={geocoding}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
             {geocoding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
             自动获取坐标
           </button>
-          {geoStatus === 'success' && (
-            <span className="text-xs text-green-600 font-medium">✅ 已获取</span>
-          )}
+          {geoStatus === 'success' && <span className="text-xs text-green-600 font-medium">✅ 已获取</span>}
           {geoStatus === 'failed' && (
             <span className="text-xs text-amber-600">
               ⚠️ 获取失败，请手动输入或从
-              <a href="https://lbs.amap.com/tools/picker" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline mx-0.5">高德坐标拾取</a>
-              复制
+              <a href="https://lbs.amap.com/tools/picker" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline mx-0.5">高德坐标拾取</a>复制
             </span>
           )}
           {geoStatus === 'idle' && (
-            <a
-              href="https://lbs.amap.com/tools/picker"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-gray-400 hover:text-blue-600 underline"
-            >
-              手动拾取坐标 →
-            </a>
+            <a href="https://lbs.amap.com/tools/picker" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-blue-600 underline">手动拾取坐标 →</a>
           )}
         </div>
       </div>
@@ -342,6 +394,119 @@ export function RestaurantForm() {
         </div>
       </div>
 
+      {/* ====== 菜品区域 ====== */}
+      <div className="rounded-xl border border-orange-200 bg-orange-50/30 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Utensils className="h-5 w-5 text-orange-500" />
+            <span className="text-sm font-bold text-gray-800">推荐菜品</span>
+            <span className="text-xs text-gray-400">（选填，可添加多道）</span>
+          </div>
+          <button
+            type="button"
+            onClick={addDish}
+            className="inline-flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" /> 添加菜品
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {dishes.map((dish, index) => (
+            <div key={dish.id} className="rounded-xl bg-white border border-gray-100 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold text-gray-400">菜品 #{index + 1}</span>
+                {dishes.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeDish(dish.id)}
+                    className="rounded-lg p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] text-gray-500 mb-0.5">菜品名称</label>
+                  <input
+                    type="text"
+                    value={dish.name}
+                    onChange={e => updateDish(dish.id, 'name', e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    placeholder="例如：招牌毛肚"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">评分 (1-10)</label>
+                  <select
+                    value={dish.rating}
+                    onChange={e => updateDish(dish.id, 'rating', e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  >
+                    {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5, 4, 3, 2, 1].map(v => (
+                      <option key={v} value={v}>{v} 分</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">价格 ¥（选填）</label>
+                  <input
+                    type="number"
+                    value={dish.price}
+                    onChange={e => updateDish(dish.id, 'price', e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    placeholder="例如：68"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">描述（选填）</label>
+                  <input
+                    type="text"
+                    value={dish.description}
+                    onChange={e => updateDish(dish.id, 'description', e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    placeholder="简短描述..."
+                  />
+                </div>
+              </div>
+
+              {/* Dish image */}
+              <div>
+                {dish.imagePreview ? (
+                  <div className="relative h-24 w-24 rounded-lg overflow-hidden bg-gray-100">
+                    <img src={dish.imagePreview} alt="" className="h-full w-full object-cover" />
+                    <button type="button"
+                      onClick={() => updateDish(dish.id, 'imageFile', null)}
+                      className="absolute top-0.5 right-0.5 rounded-full bg-black/50 p-0.5 text-white hover:bg-black/70">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-gray-400 hover:border-gray-300 transition-colors">
+                    <ImagePlus className="h-4 w-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) updateDish(dish.id, 'imageFile', file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Description */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">简介</label>
         <textarea name="description" value={form.description} onChange={handleChange} rows={3}
