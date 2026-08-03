@@ -294,10 +294,10 @@ export default function ClientDetail() {
               </div>
             </div>
           )}
-          {restaurant.latitude && restaurant.longitude && (
+          {(restaurant.address || restaurant.name) && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-gray-400">导航到此处：</span>
-              {getNavigationUrls(restaurant.latitude, restaurant.longitude, restaurant.name).slice(0, 3).map(app => (
+              {getNavigationUrls(restaurant.latitude, restaurant.longitude, restaurant.name, restaurant.address || undefined).map(app => (
                 <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">{app.icon} {app.label}</a>
               ))}
             </div>

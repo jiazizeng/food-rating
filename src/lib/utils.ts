@@ -71,32 +71,72 @@ export interface MapAppOption {
   url: string;
 }
 
-export function getNavigationUrls(lat: number, lng: number, name?: string): MapAppOption[] {
-  const encodedName = name ? encodeURIComponent(name) : '目的地';
+export function getNavigationUrls(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+  name?: string,
+  address?: string
+): MapAppOption[] {
+  const searchText = name || address || '目的地';
+  const encodedName = encodeURIComponent(searchText);
+
+  // If we have coordinates, use precise navigation
+  if (lat != null && lng != null) {
+    return [
+      {
+        name: 'gaode',
+        label: '高德地图',
+        icon: '🗺️',
+        url: `https://uri.amap.com/navigation?to=${lng},${lat},${encodedName}&mode=car&callnative=1`,
+      },
+      {
+        name: 'baidu',
+        label: '百度地图',
+        icon: '📍',
+        url: `https://api.map.baidu.com/direction?destination=latlng:${lat},${lng}|name:${encodedName}&mode=driving&output=html&src=food-rating`,
+      },
+      {
+        name: 'apple',
+        label: 'Apple 地图',
+        icon: '🧭',
+        url: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`,
+      },
+      {
+        name: 'google',
+        label: 'Google 地图',
+        icon: '🌐',
+        url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+      },
+    ];
+  }
+
+  // Fallback: use address/keyword search
+  const fullAddress = [name, address].filter(Boolean).join(' ');
+  const encodedAddr = encodeURIComponent(fullAddress || searchText);
   return [
     {
       name: 'gaode',
-      label: '高德地图',
+      label: '高德地图搜索',
       icon: '🗺️',
-      url: `https://uri.amap.com/navigation?to=${lng},${lat},${encodedName}&mode=car&callnative=1`,
+      url: `https://uri.amap.com/search?keyword=${encodedAddr}&callnative=1`,
     },
     {
       name: 'baidu',
-      label: '百度地图',
+      label: '百度地图搜索',
       icon: '📍',
-      url: `https://api.map.baidu.com/direction?destination=latlng:${lat},${lng}|name:${encodedName}&mode=driving&output=html&src=food-rating`,
+      url: `https://map.baidu.com/search/${encodedAddr}`,
     },
     {
       name: 'apple',
       label: 'Apple 地图',
       icon: '🧭',
-      url: `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`,
+      url: `https://maps.apple.com/?q=${encodedAddr}`,
     },
     {
       name: 'google',
       label: 'Google 地图',
       icon: '🌐',
-      url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+      url: `https://www.google.com/maps/search/${encodedAddr}`,
     },
   ];
 }

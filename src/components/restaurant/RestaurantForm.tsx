@@ -2,10 +2,10 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
-import { CUISINE_TYPES, PRICE_RANGES } from '@/lib/constants';
+import { CUISINE_TYPES } from '@/lib/constants';
 import { validateImage } from '@/lib/validators';
 import { useState } from 'react';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, X, MapPin, Loader2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -31,7 +31,12 @@ export function RestaurantForm() {
     description: '',
     phone: '',
     website: '',
+    latitude: '',
+    longitude: '',
   });
+
+  const [geocoding, setGeocoding] = useState(false);
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'success' | 'failed'>('idle');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -44,6 +49,36 @@ export function RestaurantForm() {
     if (!validation.valid) { toast.error(validation.error!); return; }
     setCoverImage(file);
     setCoverPreview(URL.createObjectURL(file));
+  };
+
+  const handleGeocode = async () => {
+    if (!form.address) { toast.error('请先填写地址'); return; }
+    setGeocoding(true);
+    setGeoStatus('idle');
+    try {
+      const query = [form.name, form.city, form.address].filter(Boolean).join(' ');
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        setForm(prev => ({
+          ...prev,
+          latitude: data[0].lat,
+          longitude: data[0].lon,
+        }));
+        setGeoStatus('success');
+        toast.success('坐标获取成功！');
+      } else {
+        setGeoStatus('failed');
+        toast.error('未找到坐标，请尝试更详细的地址或手动输入');
+      }
+    } catch {
+      setGeoStatus('failed');
+      toast.error('地理编码服务不可用，请手动输入坐标');
+    } finally {
+      setGeocoding(false);
+    }
   };
 
   const uploadCover = async (): Promise<string | null> => {
@@ -68,21 +103,8 @@ export function RestaurantForm() {
     try {
       const coverUrl = await uploadCover();
 
-      // Geocode address to get lat/lng
-      let lat: number | null = null;
-      let lng: number | null = null;
-      if (form.address) {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.address)}&limit=1`
-          );
-          const data = await res.json();
-          if (data.length > 0) {
-            lat = parseFloat(data[0].lat);
-            lng = parseFloat(data[0].lon);
-          }
-        } catch {}
-      }
+      const lat = form.latitude ? parseFloat(form.latitude) : null;
+      const lng = form.longitude ? parseFloat(form.longitude) : null;
 
       const { data, error } = await supabase.from('restaurants').insert({
         name: form.name.trim(),
@@ -207,6 +229,74 @@ export function RestaurantForm() {
           <input name="address" value={form.address} onChange={handleChange}
             className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
             placeholder="详细地址" />
+        </div>
+      </div>
+
+      {/* Coordinates for navigation */}
+      <div className="rounded-xl bg-blue-50/50 border border-blue-100 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="h-4 w-4 text-blue-500" />
+          <span className="text-sm font-medium text-gray-700">坐标定位（用于地图导航）</span>
+        </div>
+        <p className="text-xs text-gray-500 mb-3">
+          填写地址后点击「自动获取」，或手动输入经纬度。有了坐标才能在详情页使用高德/百度地图一键导航。
+        </p>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-[11px] text-gray-500 mb-0.5">纬度 (Latitude)</label>
+            <input
+              name="latitude"
+              value={form.latitude}
+              onChange={handleChange}
+              type="number"
+              step="any"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+              placeholder="例如：39.9042"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-gray-500 mb-0.5">经度 (Longitude)</label>
+            <input
+              name="longitude"
+              value={form.longitude}
+              onChange={handleChange}
+              type="number"
+              step="any"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+              placeholder="例如：116.4074"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleGeocode}
+            disabled={geocoding}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {geocoding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+            自动获取坐标
+          </button>
+          {geoStatus === 'success' && (
+            <span className="text-xs text-green-600 font-medium">✅ 已获取</span>
+          )}
+          {geoStatus === 'failed' && (
+            <span className="text-xs text-amber-600">
+              ⚠️ 获取失败，请手动输入或从
+              <a href="https://lbs.amap.com/tools/picker" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline mx-0.5">高德坐标拾取</a>
+              复制
+            </span>
+          )}
+          {geoStatus === 'idle' && (
+            <a
+              href="https://lbs.amap.com/tools/picker"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-400 hover:text-blue-600 underline"
+            >
+              手动拾取坐标 →
+            </a>
+          )}
         </div>
       </div>
 
