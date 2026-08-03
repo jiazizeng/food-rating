@@ -394,22 +394,37 @@ export function RestaurantForm() {
         </div>
       </div>
 
+
       {/* ====== 菜品区域 ====== */}
-      <div className="rounded-xl border border-orange-200 bg-orange-50/30 p-5">
+      <div className="rounded-xl border p-5" style={{ borderColor: listType === 'red' ? '#bbf7d0' : '#fecaca', backgroundColor: listType === 'red' ? '#f0fdf4' : '#fef2f2' }}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Utensils className="h-5 w-5 text-orange-500" />
-            <span className="text-sm font-bold text-gray-800">推荐菜品</span>
+            <Utensils className="h-5 w-5" style={{ color: listType === 'red' ? '#16a34a' : '#dc2626' }} />
+            <span className="text-sm font-bold text-gray-800">{listType === 'red' ? '推荐菜品' : '踩雷菜品'}</span>
             <span className="text-xs text-gray-400">（选填，可添加多道）</span>
           </div>
           <button
             type="button"
             onClick={addDish}
-            className="inline-flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" /> 添加菜品
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-colors" style={{ backgroundColor: listType === 'red' ? '#16a34a' : '#dc2626' }}>
+            <Plus className="h-3.5 w-3.5" /> {listType === 'red' ? '添加菜品' : '添加踩雷'}
           </button>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <div className="space-y-3">
           {dishes.map((dish, index) => (
