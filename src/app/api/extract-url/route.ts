@@ -8,12 +8,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '请提供有效的URL' }, { status: 400 });
     }
 
-    // Clean and normalize the URL
-    let rawUrl = url.trim();
-    // Remove any whitespace/newlines that may have been pasted
-    rawUrl = rawUrl.replace(/\s+/g, '');
-    // Strip leading/trailing quotes or brackets
-    rawUrl = rawUrl.replace(/^["'«‹‚„《【（(]/, '').replace(/["'»›"‟》】）)]$/, '');
+    // === Robust URL extraction from mixed text ===
+    // Users often paste text like "【海底捞】人均150... https://m.dianping.com/xxx"
+    // We need to extract the URL from any surrounding text
+
+    const inputText = url.trim();
+
+    // Known URL shorteners and platform domains
+    const knownDomains = [
+      'dianping.com', 'meituan.com', 'amap.com', 'gaode.com',
+      'ele.me', 'dpurl.cn', 'meituan.net',
+    ];
+
+    // Pattern 1: Extract full https?:// URL from text
+    const webUrlMatch = inputText.match(/https?:\/\/[^\s一-鿿　-〿＀-￯]*[^\s一-鿿　-〿＀-￯。，！？、；：""''）】》)]/);
+    let rawUrl = webUrlMatch ? webUrlMatch[0] : '';
+
+    // Pattern 2: Extract app deep-link URL from text
+    if (!rawUrl) {
+      const schemeMatch = inputText.match(/(?:dianping|imeituan|gaode|iosamap|androidamap):\/\/[^\s一-鿿]*[^\s一-鿿。，！？、；：""''）】》)]/);
+      rawUrl = schemeMatch ? schemeMatch[0] : '';
+    }
+
+    // Pattern 3: If all else fails, try the whole input as URL (strip Chinese text)
+    if (!rawUrl) {
+      // Take the last "word" that looks like a URL fragment
+      const words = inputText.split(/\s+/);
+      for (let i = words.length - 1; i >= 0; i--) {
+        const w = words[i].trim();
+        if (/^(https?:\/\/|dianping:\/\/|imeituan:\/\/|gaode:\/\/|iosamap:\/\/|androidamap:\/\/)/.test(w)) {
+          rawUrl = w;
+          break;
+        }
+        // Short link patterns like dpurl.cn/xxxx
+        if (/^[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}\/\S+/.test(w) &&
+            knownDomains.some(d => w.includes(d))) {
+          rawUrl = (w.startsWith('http') ? '' : 'https://') + w;
+          break;
+        }
+      }
+    }
+
+    if (!rawUrl) {
+      return NextResponse.json({
+        error: '未在文本中找到有效链接。支持：美团、大众点评、高德地图的分享链接。请确认复制内容包含完整URL。',
+      }, { status: 400 });
+    }
+
+    // Clean extracted URL
+    rawUrl = rawUrl.trim();
+    // Strip trailing punctuation that isn't part of URL
+    rawUrl = rawUrl.replace(/[,，。！？、；：'"）】》）]+$/, '');
 
     // Convert app deep-link schemes to https
     const schemeMap: Record<string, string> = {
@@ -30,16 +75,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Ensure https:// prefix for bare domain URLs
+    if (!/^https?:\/\//.test(rawUrl)) {
+      rawUrl = 'https://' + rawUrl;
+    }
+
     let parsedUrl: URL;
     try {
       parsedUrl = new URL(rawUrl);
     } catch {
-      // Try encoding non-ASCII characters in the path
+      // Try encoding non-ASCII characters
       try {
-        const encoded = rawUrl.replace(/[^\x00-\x7F]+/g, (chunk) => encodeURIComponent(chunk));
+        const encoded = rawUrl.replace(/[^\x00-\x7F]+/g, (chunk: string) => encodeURIComponent(chunk));
         parsedUrl = new URL(encoded);
       } catch {
-        return NextResponse.json({ error: 'URL格式不正确，请确认复制的是完整链接' }, { status: 400 });
+        return NextResponse.json({
+          error: '无法解析链接，请确认复制的是完整的网页地址（非小程序链接）',
+        }, { status: 400 });
       }
     }
 
