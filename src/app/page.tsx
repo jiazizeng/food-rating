@@ -241,8 +241,8 @@ export default function HomePage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-gray-900 truncate">{profile?.display_name || profile?.username || '用户'}</span>
-                              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0', review.list_type === 'red' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')}>
-                                {review.list_type === 'red' ? '推荐' : '避雷'}
+                              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0', review.list_type === 'red' ? 'bg-green-100 text-green-700' : review.list_type === 'black' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700')}>
+                                {review.list_type === 'red' ? '推荐' : review.list_type === 'black' ? '避雷' : '记录'}
                               </span>
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">评价了 {rName}</p>

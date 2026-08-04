@@ -1,5 +1,5 @@
 export type UserRole = 'user' | 'admin';
-export type ListType = 'red' | 'black';
+export type ListType = "red" | "black" | "gray";
 export type RestaurantStatus = 'pending' | 'approved' | 'rejected';
 export type ReportTargetType = 'review' | 'restaurant' | 'comment';
 export type ReportStatus = 'pending' | 'resolved' | 'dismissed';

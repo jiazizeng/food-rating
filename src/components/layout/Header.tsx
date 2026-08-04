@@ -8,12 +8,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
-  Menu, X, Search, User, LogOut, PlusCircle, Heart,
+  Menu, X, Search, User, LogOut, PlusCircle, Heart, MinusCircle,
   BarChart3, MapPin, ThumbsUp, ThumbsDown, ChevronDown, Bike,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { label: '红榜', href: '/red-list', icon: ThumbsUp, color: 'text-green-600' },
+  { label: '灰榜', href: '/gray-list', icon: MinusCircle, color: 'text-gray-600' },
   { label: '黑榜', href: '/black-list', icon: ThumbsDown, color: 'text-red-600' },
   { label: '外卖', href: '/takeout', icon: Bike, color: 'text-yellow-600' },
   { label: '地图', href: '/map', icon: MapPin, color: 'text-blue-600' },

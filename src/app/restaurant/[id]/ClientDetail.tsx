@@ -52,7 +52,7 @@ export default function ClientDetail() {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '', cuisine: '', address: '', city: '', phone: '', website: '',
-    business_hours: '', avg_price: '', description: '', list_type: 'red' as 'red' | 'black',
+    business_hours: '', avg_price: '', description: '', list_type: 'red' as 'red' | 'black' | 'gray',
     is_takeout: false, avg_rating: 0,
   });
   const [editRating, setEditRating] = useState(0);
@@ -90,7 +90,7 @@ export default function ClientDetail() {
         business_hours: restaurant.business_hours || '',
         avg_price: restaurant.avg_price?.toString() || '',
         description: restaurant.description || '',
-        list_type: (restaurant.list_type as 'red' | 'black') || 'red',
+        list_type: (restaurant.list_type as 'red' | 'black' | 'gray') || 'gray',
         is_takeout: restaurant.is_takeout || false,
         avg_rating: restaurant.avg_rating || 0,
       });
@@ -254,7 +254,10 @@ export default function ClientDetail() {
   );
 
   const favorited = isFavorited(id);
-  const isRed = restaurant.list_type === 'red' || restaurant.avg_rating >= 3.5;
+  const listLabel = restaurant.list_type === 'red' ? '👍 红榜推荐' : restaurant.list_type === 'black' ? '👎 黑榜避雷' : '📝 灰榜记录';
+  const listColor = restaurant.list_type === 'red' ? 'bg-green-500/80' : restaurant.list_type === 'black' ? 'bg-red-500/80' : 'bg-gray-500/80';
+  const isRed = restaurant.list_type === 'red';
+  const isBlack = restaurant.list_type === 'black';
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
@@ -291,8 +294,8 @@ export default function ClientDetail() {
                   {localEatenStatus === 'eaten' ? '✅ 管理员已吃过' : '📋 管理员未吃过'}
                 </span>
               ) : null}
-              <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold backdrop-blur', isRed ? 'bg-green-500/80' : 'bg-red-500/80')}>
-                {isRed ? '👍 红榜推荐' : '👎 黑榜避雷'}
+              <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold backdrop-blur', listColor)}>
+                {listLabel}
               </span>
             </div>
             {editing ? (
@@ -364,9 +367,10 @@ export default function ClientDetail() {
                 </div>
                 <div>
                   <label className="block text-[11px] text-gray-500 mb-0.5">红黑榜</label>
-                  <select value={editForm.list_type} onChange={e => setEditForm(p => ({ ...p, list_type: e.target.value as 'red' | 'black' }))}
+                  <select value={editForm.list_type} onChange={e => setEditForm(p => ({ ...p, list_type: e.target.value as 'red' | 'black' | 'gray' }))}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:border-blue-500 outline-none">
                     <option value="red">👍 红榜</option>
+                    <option value="gray">📝 灰榜</option>
                     <option value="black">👎 黑榜</option>
                   </select>
                 </div>

@@ -27,7 +27,7 @@ export function RestaurantForm() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const supabase = createClient();
 
-  const [listType, setListType] = useState<'red' | 'black'>('red');
+  const [listType, setListType] = useState<'red' | 'black' | 'gray'>('red');
   const [isTakeout, setIsTakeout] = useState(false);
   const [rating, setRating] = useState(0); // star rating for this entry
   const [form, setForm] = useState({
@@ -160,6 +160,7 @@ export function RestaurantForm() {
     if (listType === 'black' && rating > 2) {
       toast.error('黑榜评分最多 2 颗星（★★☆☆☆ 及以下）'); return;
     }
+    // gray: no restriction
 
     const validDishes = dishes.filter(d => d.name.trim());
     for (const d of validDishes) {
@@ -244,35 +245,48 @@ export function RestaurantForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-      {/* Red/Black toggle */}
+      {/* Red/Gray/Black toggle */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">红黑榜分类 *</label>
-        <div className="flex gap-3">
+        <label className="block text-sm font-medium text-gray-700 mb-2">分类 *</label>
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setListType('red')}
-            className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${
+            className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${
               listType === 'red'
-                ? 'border-green-500 bg-green-50'
+                ? 'border-green-500 bg-green-50 shadow-sm'
                 : 'border-gray-200 bg-white hover:border-green-200'
             }`}
           >
-            <span className="text-2xl">👍</span>
-            <p className={`text-sm font-bold mt-1 ${listType === 'red' ? 'text-green-700' : 'text-gray-500'}`}>红榜推荐</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">推荐好餐厅</p>
+            <span className="text-xl">👍</span>
+            <p className={`text-xs font-bold mt-0.5 ${listType === 'red' ? 'text-green-700' : 'text-gray-500'}`}>红榜</p>
+            <p className="text-[9px] text-gray-400">推荐</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setListType('gray')}
+            className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${
+              listType === 'gray'
+                ? 'border-gray-400 bg-gray-50 shadow-sm'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+          >
+            <span className="text-xl">📝</span>
+            <p className={`text-xs font-bold mt-0.5 ${listType === 'gray' ? 'text-gray-700' : 'text-gray-500'}`}>灰榜</p>
+            <p className="text-[9px] text-gray-400">待定/中等</p>
           </button>
           <button
             type="button"
             onClick={() => setListType('black')}
-            className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${
+            className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${
               listType === 'black'
-                ? 'border-red-500 bg-red-50'
+                ? 'border-red-500 bg-red-50 shadow-sm'
                 : 'border-gray-200 bg-white hover:border-red-200'
             }`}
           >
-            <span className="text-2xl">👎</span>
-            <p className={`text-sm font-bold mt-1 ${listType === 'black' ? 'text-red-700' : 'text-gray-500'}`}>黑榜避雷</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">帮大家避坑</p>
+            <span className="text-xl">👎</span>
+            <p className={`text-xs font-bold mt-0.5 ${listType === 'black' ? 'text-red-700' : 'text-gray-500'}`}>黑榜</p>
+            <p className="text-[9px] text-gray-400">避雷</p>
           </button>
         </div>
       </div>
@@ -313,12 +327,12 @@ export function RestaurantForm() {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           评分 *
           <span className="text-xs font-normal text-gray-400 ml-1">
-            {listType === 'red' ? '（红榜需 ≥ 4 星）' : '（黑榜需 ≤ 2 星）'}
+            {listType === 'red' ? '（红榜需 ≥ 4 星）' : listType === 'black' ? '（黑榜需 ≤ 2 星）' : '（灰榜无限制）'}
           </span>
         </label>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => {
-            const isDisabled = listType === 'red' ? star < 4 : star > 2;
+            const isDisabled = listType === 'red' ? star < 4 : listType === 'black' ? star > 2 : false;
             const isActive = star <= rating;
             return (
               <button
@@ -345,7 +359,9 @@ export function RestaurantForm() {
             );
           })}
           {rating > 0 && (
-            <span className={`ml-2 text-sm font-bold ${listType === 'red' ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`ml-2 text-sm font-bold ${
+              listType === 'red' ? 'text-green-600' : listType === 'black' ? 'text-red-600' : 'text-gray-600'
+            }`}>
               {rating} 星
             </span>
           )}
@@ -353,7 +369,9 @@ export function RestaurantForm() {
         <p className="text-[11px] text-gray-400 mt-1">
           {listType === 'red'
             ? '红榜只能选择 4-5 星，代表值得推荐的餐厅'
-            : '黑榜只能选择 1-2 星，代表需要避雷的餐厅'}
+            : listType === 'black'
+            ? '黑榜只能选择 1-2 星，代表需要避雷的餐厅'
+            : '灰榜无评分限制，适合记录待尝试或中等水平的餐厅'}
         </p>
       </div>
 
@@ -480,18 +498,18 @@ export function RestaurantForm() {
 
 
       {/* ====== 菜品区域 ====== */}
-      <div className="rounded-xl border p-5" style={{ borderColor: listType === 'red' ? '#bbf7d0' : '#fecaca', backgroundColor: listType === 'red' ? '#f0fdf4' : '#fef2f2' }}>
+      <div className="rounded-xl border p-5" style={{ borderColor: listType === 'red' ? '#bbf7d0' : listType === 'black' ? '#fecaca' : '#d1d5db', backgroundColor: listType === 'red' ? '#f0fdf4' : listType === 'black' ? '#fef2f2' : '#f9fafb' }}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Utensils className="h-5 w-5" style={{ color: listType === 'red' ? '#16a34a' : '#dc2626' }} />
-            <span className="text-sm font-bold text-gray-800">{listType === 'red' ? '推荐菜品' : '踩雷菜品'}</span>
+            <Utensils className="h-5 w-5" style={{ color: listType === 'red' ? '#16a34a' : listType === 'black' ? '#dc2626' : '#6b7280' }} />
+            <span className="text-sm font-bold text-gray-800">{listType === 'red' ? '推荐菜品' : listType === 'black' ? '踩雷菜品' : '记录菜品'}</span>
             <span className="text-xs text-gray-400">（选填，可添加多道）</span>
           </div>
           <button
             type="button"
             onClick={addDish}
-            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-colors" style={{ backgroundColor: listType === 'red' ? '#16a34a' : '#dc2626' }}>
-            <Plus className="h-3.5 w-3.5" /> {listType === 'red' ? '添加菜品' : '添加踩雷'}
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-colors" style={{ backgroundColor: listType === 'red' ? '#16a34a' : listType === 'black' ? '#dc2626' : '#6b7280' }}>
+            <Plus className="h-3.5 w-3.5" /> {listType === 'red' ? '添加菜品' : listType === 'black' ? '添加踩雷' : '添加菜品'}
           </button>
         </div>
 

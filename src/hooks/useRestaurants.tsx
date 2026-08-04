@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { ITEMS_PER_PAGE } from '@/lib/constants';
 
 interface UseRestaurantsOptions {
-  listType?: 'red' | 'black';
+  listType?: 'red' | 'black' | 'gray';
   cuisine?: string;
   city?: string;
   search?: string;
@@ -39,6 +39,8 @@ export function useRestaurants(options: UseRestaurantsOptions = {}) {
       query = query.or('list_type.eq.red,and(avg_rating.gt.3.5)').order('avg_rating', { ascending: false });
     } else if (listType === 'black') {
       query = query.or('list_type.eq.black,and(avg_rating.lt.2.5)').order('avg_rating', { ascending: true });
+    } else if (listType === 'gray') {
+      query = query.or('list_type.eq.gray,and(avg_rating.gte.2.5,avg_rating.lte.3.5)').order('avg_rating', { ascending: false });
     }
 
     if (cuisine) query = query.eq('cuisine', cuisine);

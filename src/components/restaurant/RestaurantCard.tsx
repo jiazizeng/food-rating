@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  listType?: 'red' | 'black';
+  listType?: 'red' | 'black' | 'gray';
 }
 
 export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
@@ -57,8 +57,8 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
           {restaurant.list_type && (
             <div className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold text-white shadow-sm',
-              restaurant.list_type === 'red' ? 'bg-green-500' : 'bg-red-500')}>
-              {restaurant.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
+              restaurant.list_type === 'red' ? 'bg-green-500' : restaurant.list_type === 'black' ? 'bg-red-500' : 'bg-gray-500')}>
+              {restaurant.list_type === 'red' ? '👍 红榜' : restaurant.list_type === 'black' ? '👎 黑榜' : '📝 灰榜'}
             </div>
           )}
           {restaurant.is_takeout && (

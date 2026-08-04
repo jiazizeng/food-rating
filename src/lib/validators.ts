@@ -31,7 +31,7 @@ export function validateReview(data: Record<string, unknown>): { valid: boolean;
   if (!data.rating || typeof data.rating !== 'number' || data.rating < 1 || data.rating > 5) {
     errors.push('评分必须在1-5之间');
   }
-  if (!data.list_type || !['red', 'black'].includes(data.list_type as string)) {
+  if (!data.list_type || !['red', 'black', 'gray'].includes(data.list_type as string)) {
     errors.push('请选择红榜或黑榜');
   }
   if (data.content && typeof data.content === 'string' && data.content.length > 5000) {

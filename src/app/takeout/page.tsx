@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Restaurant } from '@/types';
 
 export default function TakeoutPage() {
-  const [tab, setTab] = useState<'all' | 'red' | 'black'>('all');
+  const [tab, setTab] = useState<'all' | 'red' | 'gray' | 'black'>('all');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [cuisine, setCuisine] = useState('');
@@ -28,6 +28,8 @@ export default function TakeoutPage() {
 
     if (tab === 'red') {
       query = query.or('list_type.eq.red,and(avg_rating.gt.3.5)');
+    } else if (tab === 'gray') {
+      query = query.or('list_type.eq.gray,and(avg_rating.gte.2.5,avg_rating.lte.3.5)');
     } else if (tab === 'black') {
       query = query.or('list_type.eq.black,and(avg_rating.lt.2.5)');
     }
@@ -58,6 +60,7 @@ export default function TakeoutPage() {
         {[
           { key: 'all', label: '全部外卖', icon: '🛵' },
           { key: 'red', label: '外卖红榜', icon: '👍' },
+          { key: 'gray', label: '外卖灰榜', icon: '📝' },
           { key: 'black', label: '外卖黑榜', icon: '👎' },
         ].map(t => (
           <button
@@ -65,9 +68,7 @@ export default function TakeoutPage() {
             onClick={() => setTab(t.key as typeof tab)}
             className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all flex items-center gap-1.5 ${
               tab === t.key
-                ? t.key === 'red' ? 'bg-green-500 text-white' :
-                  t.key === 'black' ? 'bg-red-500 text-white' :
-                  'bg-yellow-500 text-white'
+                ? ((t.key === 'red' ? 'bg-green-500 text-white' : t.key === 'gray' ? 'bg-gray-500 text-white' : t.key === 'black' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-white'))
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >

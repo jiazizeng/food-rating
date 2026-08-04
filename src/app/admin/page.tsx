@@ -510,9 +510,9 @@ function ReviewApprovalCard({
             <StarRating rating={review.rating} size="sm" />
             <span className={cn(
               'rounded-full px-2 py-0.5 text-[10px] font-bold',
-              review.list_type === 'red' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              review.list_type === 'red' ? 'bg-green-100 text-green-700' : review.list_type === 'black' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
             )}>
-              {review.list_type === 'red' ? '红榜' : '黑榜'}
+              {review.list_type === 'red' ? '红榜' : review.list_type === 'black' ? '黑榜' : '灰榜'}
             </span>
           </div>
 
