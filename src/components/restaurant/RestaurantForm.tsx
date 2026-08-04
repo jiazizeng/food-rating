@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { CUISINE_TYPES } from '@/lib/constants';
 import { validateImage } from '@/lib/validators';
 import { useState, useRef } from 'react';
-import { ImagePlus, X, MapPin, Loader2, Search, Plus, Star, Utensils, Trash2, Link2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ImagePlus, X, MapPin, Loader2, Search, Plus, Star, Utensils, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -48,14 +48,6 @@ export function RestaurantForm() {
 
   const [geocoding, setGeocoding] = useState(false);
   const [geoStatus, setGeoStatus] = useState<'idle' | 'success' | 'failed'>('idle');
-
-  // URL extraction state
-  const [extractUrl, setExtractUrl] = useState('');
-  const [extracting, setExtracting] = useState(false);
-  const [extractedData, setExtractedData] = useState<Record<string, string | null> | null>(null);
-  const [extractError, setExtractError] = useState<string | null>(null);
-  const [extractSource, setExtractSource] = useState<string | null>(null);
-  const [showExtract, setShowExtract] = useState(false);
 
   // Multi-dish state
   const [dishes, setDishes] = useState<DishInput[]>([
@@ -108,54 +100,6 @@ export function RestaurantForm() {
       }
       return { ...d, [field]: value as string };
     }));
-  };
-
-  const handleExtractUrl = async () => {
-    if (!extractUrl.trim()) { toast.error('请粘贴链接'); return; }
-    setExtracting(true);
-    setExtractError(null);
-    setExtractedData(null);
-    setExtractSource(null);
-    try {
-      const res = await fetch('/api/extract-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: extractUrl.trim() }),
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        setExtractError(json.error || '识别失败');
-      } else {
-        setExtractedData(json.data);
-        setExtractSource(json.source || null);
-        toast.success(`已从${json.source || '链接'}识别到信息`);
-      }
-    } catch {
-      setExtractError('网络请求失败，请稍后重试');
-    } finally {
-      setExtracting(false);
-    }
-  };
-
-  const fillFormFromExtracted = () => {
-    if (!extractedData) return;
-    const d = extractedData;
-    setForm(prev => ({
-      ...prev,
-      name: d.name || prev.name,
-      address: d.address || prev.address,
-      city: d.city || prev.city,
-      cuisine: d.cuisine || prev.cuisine,
-      phone: d.phone || prev.phone,
-      website: d.website || prev.website,
-      business_hours: d.business_hours || prev.business_hours,
-      avg_price: d.avg_price || prev.avg_price,
-      price_range: d.price_range || prev.price_range,
-      latitude: d.latitude || prev.latitude,
-      longitude: d.longitude || prev.longitude,
-      description: d.description || prev.description,
-    }));
-    toast.success('已填充识别到的信息，请补充完善后提交');
   };
 
   const handleGeocode = async () => {
@@ -289,120 +233,6 @@ export function RestaurantForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-      {/* URL Extraction Section */}
-      <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowExtract(!showExtract)}
-          className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-gray-100/50 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Link2 className="h-5 w-5 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">粘贴链接智能识别</span>
-            <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600">BETA</span>
-          </div>
-          {showExtract ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
-        </button>
-        {showExtract && (
-          <div className="px-5 pb-4 border-t border-gray-200 pt-4">
-            <p className="text-xs text-gray-500 mb-3">
-              粘贴美团、大众点评、高德地图等链接，自动识别餐厅信息（人均、地址、电话等）。主观评价请手动填写。
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={extractUrl}
-                onChange={e => setExtractUrl(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleExtractUrl(); } }}
-                placeholder="https://www.dianping.com/shop/..."
-                className="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
-              />
-              <button
-                type="button"
-                onClick={handleExtractUrl}
-                disabled={extracting || !extractUrl.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50 transition-colors shrink-0"
-              >
-                {extracting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> 识别中</>
-                ) : (
-                  <><Search className="h-4 w-4" /> 识别</>
-                )}
-              </button>
-            </div>
-
-            {/* Error */}
-            {extractError && (
-              <div className="mt-3 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-sm text-red-600">
-                ⚠️ {extractError}
-              </div>
-            )}
-
-            {/* Extracted data preview */}
-            {extractedData && (
-              <div className="mt-3 rounded-xl bg-white border border-green-200 overflow-hidden">
-                <div className="bg-green-50 px-4 py-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-green-700">
-                    ✅ 识别结果 {extractSource ? `（来源：${extractSource}）` : ''}
-                  </span>
-                </div>
-                <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {extractedData.name && (
-                    <div className="col-span-2"><span className="text-gray-400 text-xs">名称</span>
-                      <p className="font-medium text-gray-900">{extractedData.name}</p>
-                    </div>
-                  )}
-                  {extractedData.cuisine && (
-                    <div><span className="text-gray-400 text-xs">菜系</span>
-                      <p className="text-gray-700">{extractedData.cuisine}</p>
-                    </div>
-                  )}
-                  {extractedData.avg_price && (
-                    <div><span className="text-gray-400 text-xs">人均</span>
-                      <p className="text-gray-700">¥{extractedData.avg_price}</p>
-                    </div>
-                  )}
-                  {extractedData.address && (
-                    <div className="col-span-2"><span className="text-gray-400 text-xs">地址</span>
-                      <p className="text-gray-700">{extractedData.address}</p>
-                    </div>
-                  )}
-                  {extractedData.phone && (
-                    <div><span className="text-gray-400 text-xs">电话</span>
-                      <p className="text-gray-700">{extractedData.phone}</p>
-                    </div>
-                  )}
-                  {extractedData.business_hours && (
-                    <div><span className="text-gray-400 text-xs">营业时间</span>
-                      <p className="text-gray-700">{extractedData.business_hours}</p>
-                    </div>
-                  )}
-                  {(extractedData.latitude && extractedData.longitude) && (
-                    <div><span className="text-gray-400 text-xs">坐标</span>
-                      <p className="text-gray-700">{extractedData.latitude}, {extractedData.longitude}</p>
-                    </div>
-                  )}
-                  {extractedData.description && (
-                    <div className="col-span-2"><span className="text-gray-400 text-xs">简介</span>
-                      <p className="text-gray-700 line-clamp-2">{extractedData.description}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="px-4 pb-4">
-                  <button
-                    type="button"
-                    onClick={fillFormFromExtracted}
-                    className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors"
-                  >
-                    填充到表单（主观内容请手动补充）
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Red/Black toggle */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">红黑榜分类 *</label>
