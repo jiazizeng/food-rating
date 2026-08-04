@@ -53,8 +53,9 @@ export default function ClientDetail() {
   const [editForm, setEditForm] = useState({
     name: '', cuisine: '', address: '', city: '', phone: '', website: '',
     business_hours: '', avg_price: '', description: '', list_type: 'red' as 'red' | 'black',
-    is_takeout: false,
+    is_takeout: false, avg_rating: 0,
   });
+  const [editRating, setEditRating] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const supabase = createClient();
@@ -91,7 +92,9 @@ export default function ClientDetail() {
         description: restaurant.description || '',
         list_type: (restaurant.list_type as 'red' | 'black') || 'red',
         is_takeout: restaurant.is_takeout || false,
+        avg_rating: restaurant.avg_rating || 0,
       });
+      setEditRating(restaurant.avg_rating || 0);
     }
   }, [editing, restaurant]);
 
@@ -179,6 +182,7 @@ export default function ClientDetail() {
       description: editForm.description || null,
       list_type: editForm.list_type,
       is_takeout: editForm.is_takeout,
+      avg_rating: editRating,
     }).eq('id', id);
     if (error) { toast.error('保存失败: ' + error.message); setSaving(false); return; }
     toast.success('修改已保存');
@@ -379,6 +383,28 @@ export default function ClientDetail() {
                     className="rounded" />
                   🛵 标记为外卖
                 </label>
+              </div>
+              <div className="mb-4">
+                <label className="block text-[11px] text-gray-500 mb-1.5">评分</label>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setEditRating(star)}
+                      className={`text-2xl transition-all duration-150 ${
+                        star <= editRating
+                          ? 'text-amber-400 scale-110 hover:scale-125'
+                          : 'text-gray-200 hover:text-amber-300 hover:scale-110'
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  {editRating > 0 && (
+                    <span className="ml-2 text-sm font-bold text-gray-700">{editRating} 星</span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-3">
                 <button onClick={handleSaveEdit} disabled={saving}

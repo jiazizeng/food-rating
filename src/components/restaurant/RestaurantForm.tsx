@@ -29,6 +29,7 @@ export function RestaurantForm() {
 
   const [listType, setListType] = useState<'red' | 'black'>('red');
   const [isTakeout, setIsTakeout] = useState(false);
+  const [rating, setRating] = useState(0); // star rating for this entry
   const [form, setForm] = useState({
     name: '',
     address: '',
@@ -151,6 +152,15 @@ export function RestaurantForm() {
     if (!form.name.trim()) { toast.error('请输入餐厅名称'); return; }
 
     // Validate dish names
+    // Validate star rating based on list type
+    if (rating === 0) { toast.error('请选择评分'); return; }
+    if (listType === 'red' && rating < 4) {
+      toast.error('红榜评分至少需要 4 颗星（★★★★☆ 及以上）'); return;
+    }
+    if (listType === 'black' && rating > 2) {
+      toast.error('黑榜评分最多 2 颗星（★★☆☆☆ 及以下）'); return;
+    }
+
     const validDishes = dishes.filter(d => d.name.trim());
     for (const d of validDishes) {
       if (!d.name.trim()) { toast.error('请填写所有菜品的名称'); return; }
@@ -184,6 +194,7 @@ export function RestaurantForm() {
         latitude: lat,
         longitude: lng,
         created_by: user.id,
+        avg_rating: rating,
         is_takeout: isTakeout,        list_type: listType,
         status: profile?.role === 'admin' ? 'approved' : 'pending',
       }).select('id').single();
@@ -295,6 +306,55 @@ export function RestaurantForm() {
         <input name="name" value={form.name} onChange={handleChange} required
           className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
           placeholder="例如：海底捞火锅" />
+      </div>
+
+      {/* Star Rating */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          评分 *
+          <span className="text-xs font-normal text-gray-400 ml-1">
+            {listType === 'red' ? '（红榜需 ≥ 4 星）' : '（黑榜需 ≤ 2 星）'}
+          </span>
+        </label>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => {
+            const isDisabled = listType === 'red' ? star < 4 : star > 2;
+            const isActive = star <= rating;
+            return (
+              <button
+                key={star}
+                type="button"
+                onClick={() => {
+                  if (isDisabled) {
+                    toast.error(listType === 'red' ? '红榜最低 4 颗星' : '黑榜最多 2 颗星');
+                    return;
+                  }
+                  setRating(star);
+                }}
+                className={`text-3xl transition-all duration-150 ${
+                  isDisabled
+                    ? 'text-gray-200 cursor-not-allowed'
+                    : isActive
+                    ? 'text-amber-400 scale-110 hover:scale-125'
+                    : 'text-gray-200 hover:text-amber-300 hover:scale-110'
+                }`}
+                title={isDisabled ? (listType === 'red' ? '红榜最低 4 颗星' : '黑榜最多 2 颗星') : `${star} 星`}
+              >
+                ★
+              </button>
+            );
+          })}
+          {rating > 0 && (
+            <span className={`ml-2 text-sm font-bold ${listType === 'red' ? 'text-green-600' : 'text-red-600'}`}>
+              {rating} 星
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-gray-400 mt-1">
+          {listType === 'red'
+            ? '红榜只能选择 4-5 星，代表值得推荐的餐厅'
+            : '黑榜只能选择 1-2 星，代表需要避雷的餐厅'}
+        </p>
       </div>
 
       {/* Cover image */}
