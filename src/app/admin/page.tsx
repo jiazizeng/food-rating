@@ -9,7 +9,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Shield, Check, X, Trash2, Utensils, MessageSquare, Clock,
+  Shield, Check, X, Trash2, Utensils, MessageSquare, Clock, Pencil,
   ChevronDown, User, MapPin, ExternalLink,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -118,21 +118,18 @@ export default function AdminPage() {
   };
 
   const handleUpdateEatenStatus = async (id: string, eaten: EatenStatus) => {
-    const now = new Date().toISOString();
     const { error } = await supabase
       .from('restaurants')
       .update({
         eaten_status: eaten,
-        eaten_date: eaten === 'eaten' ? now : null,
         reviewed_by: user!.id,
-        updated_at: now,
       })
       .eq('id', id);
 
     if (error) { toast.error('更新失败'); return; }
     toast.success(`已更新为「${eaten === 'eaten' ? '已吃过' : '未吃过'}」`);
     setPendingRestaurants(prev => prev.map(r =>
-      r.id === id ? { ...r, eaten_status: eaten, eaten_date: eaten === 'eaten' ? now : null } : r
+      r.id === id ? { ...r, eaten_status: eaten } : r
     ));
   };
 
@@ -442,7 +439,12 @@ function RestaurantApprovalCard({
 
         {!isPending && (
           <div className="flex flex-wrap items-center gap-2 sm:shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-            <span className="text-xs text-gray-400">{formatDate(restaurant.updated_at)} 审核</span>
+            <Link
+              href={`/restaurant/${restaurant.id}`}
+              className="flex items-center gap-1 rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <Pencil className="h-3.5 w-3.5" /> 编辑
+            </Link>
             <span className="text-[10px] text-gray-300">|</span>
             <button
               onClick={() => onUpdateEaten(restaurant.id, 'eaten')}

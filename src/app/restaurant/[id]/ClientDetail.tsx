@@ -155,10 +155,8 @@ export default function ClientDetail() {
 
   const handleUpdateEaten = async (status: 'eaten' | 'not_eaten') => {
     if (!isAdmin) return;
-    const now = new Date().toISOString();
     const { error } = await supabase.from('restaurants').update({
       eaten_status: status,
-      eaten_date: status === 'eaten' ? now : null,
     }).eq('id', id);
     if (error) { toast.error('更新失败: ' + error.message); return; }
     setLocalEatenStatus(status);

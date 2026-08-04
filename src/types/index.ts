@@ -41,7 +41,6 @@ export interface Restaurant {
   eaten_status: EatenStatus | null;
   is_takeout: boolean;
   delivery_platform: string | null;
-  eaten_date: string | null;
   reviewed_by: string | null;
   red_list_count: number;
   black_list_count: number;
@@ -87,7 +86,6 @@ export interface Review {
   eaten_status: EatenStatus | null;
   is_takeout: boolean;
   delivery_platform: string | null;
-  eaten_date: string | null;
   reviewed_by: string | null;
   created_at: string;
   updated_at: string;
