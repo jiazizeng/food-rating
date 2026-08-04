@@ -219,7 +219,7 @@ export default function ClientDetail() {
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {restaurant.cuisine && <span className="rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-xs">{restaurant.cuisine}</span>}
-              {isAdmin ? (
+              {restaurant.is_takeout && <span className="rounded-full bg-yellow-400/30 backdrop-blur px-2.5 py-0.5 text-xs font-medium">🛵 外卖</span>}              {isAdmin ? (
                 <>
                   <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('eaten'); }}
                     className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',

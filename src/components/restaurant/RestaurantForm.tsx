@@ -28,6 +28,7 @@ export function RestaurantForm() {
   const supabase = createClient();
 
   const [listType, setListType] = useState<'red' | 'black'>('red');
+  const [isTakeout, setIsTakeout] = useState(false);
   const [form, setForm] = useState({
     name: '',
     address: '',
@@ -183,7 +184,7 @@ export function RestaurantForm() {
         latitude: lat,
         longitude: lng,
         created_by: user.id,
-        list_type: listType,
+        is_takeout: isTakeout,        list_type: listType,
         status: profile?.role === 'admin' ? 'approved' : 'pending',
       }).select('id').single();
 
@@ -261,6 +262,29 @@ export function RestaurantForm() {
             <span className="text-2xl">👎</span>
             <p className={`text-sm font-bold mt-1 ${listType === 'black' ? 'text-red-700' : 'text-gray-500'}`}>黑榜避雷</p>
             <p className="text-[10px] text-gray-400 mt-0.5">帮大家避坑</p>
+          </button>
+        </div>
+      </div>
+
+      {/* Dine-in / Takeout toggle */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">用餐方式</label>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setIsTakeout(false)}
+            className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${!isTakeout ? "border-orange-500 bg-orange-50" : "border-gray-200 bg-white hover:border-orange-200"}`}
+          >
+            <span className="text-xl">🍽️</span>
+            <p className={`text-sm font-bold mt-1 ${!isTakeout ? "text-orange-700" : "text-gray-500"}`}>堂食</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsTakeout(true)}
+            className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${isTakeout ? "border-yellow-500 bg-yellow-50" : "border-gray-200 bg-white hover:border-yellow-200"}`}
+          >
+            <span className="text-xl">🛵</span>
+            <p className={`text-sm font-bold mt-1 ${isTakeout ? "text-yellow-700" : "text-gray-500"}`}>外卖</p>
           </button>
         </div>
       </div>

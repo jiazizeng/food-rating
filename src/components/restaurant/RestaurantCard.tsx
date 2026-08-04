@@ -53,12 +53,20 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
             <span className="opacity-60">🍽️</span>
           </div>
         )}
-        {restaurant.list_type && (
-          <div className={cn('absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-white shadow-sm',
-            restaurant.list_type === 'red' ? 'bg-green-500' : 'bg-red-500')}>
-            {restaurant.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
-          </div>
-        )}
+        {/* Badges */}
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+          {restaurant.list_type && (
+            <div className={cn('rounded-full px-2.5 py-1 text-[11px] font-bold text-white shadow-sm',
+              restaurant.list_type === 'red' ? 'bg-green-500' : 'bg-red-500')}>
+              {restaurant.list_type === 'red' ? '👍 红榜' : '👎 黑榜'}
+            </div>
+          )}
+          {restaurant.is_takeout && (
+            <div className="rounded-full px-2.5 py-1 text-[11px] font-bold text-white bg-yellow-500 shadow-sm">
+              🛵 外卖
+            </div>
+          )}
+        </div>
         <button onClick={handleFavorite}
           className="absolute top-2.5 right-2.5 rounded-full bg-white/90 p-2 shadow-sm hover:bg-white hover:scale-110 transition-all">
           <Heart className={cn('h-4 w-4 transition-colors', favorited ? 'fill-red-500 text-red-500' : 'text-gray-400')} />
@@ -93,7 +101,6 @@ export function RestaurantCard({ restaurant, listType }: RestaurantCardProps) {
           <span className="text-xs font-bold text-amber-600">{restaurant.avg_rating > 0 ? restaurant.avg_rating.toFixed(1) : '-'}</span>
         </div>
 
-        {/* City + submitter */}
         <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
           <div className="flex items-center gap-1 truncate">
             {restaurant.city ? <><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{restaurant.city}</span></> : null}
