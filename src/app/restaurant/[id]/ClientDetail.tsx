@@ -9,13 +9,14 @@ import { ReviewForm } from '@/components/restaurant/ReviewForm';
 import { ReviewList } from '@/components/restaurant/ReviewList';
 import { PageLoading } from '@/components/shared/Loading';
 import { formatPrice, cn, getNavigationUrls } from '@/lib/utils';
+import { CUISINE_TYPES } from '@/lib/constants';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   MapPin, Phone, Globe, Clock, Heart, Share2,
   Trash2, ArrowLeft, Clock as ClockIcon, XCircle,
-  Star, Utensils, Plus, ImagePlus, X,
+  Star, Utensils, Plus, ImagePlus, X, Pencil, Save, X as XIcon,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Food } from '@/types';
@@ -47,6 +48,15 @@ export default function ClientDetail() {
   const [creatorProfile, setCreatorProfile] = useState<{ display_name?: string; username?: string } | null>(null);
   const [localEatenStatus, setLocalEatenStatus] = useState<string | null>(null);
 
+  // Edit mode
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '', cuisine: '', address: '', city: '', phone: '', website: '',
+    business_hours: '', avg_price: '', description: '', list_type: 'red' as 'red' | 'black',
+    is_takeout: false,
+  });
+  const [saving, setSaving] = useState(false);
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -65,6 +75,25 @@ export default function ClientDetail() {
         .then(({ data }) => { if (data) setCreatorProfile(data); });
     }
   }, [restaurant?.created_by]);
+
+  // Populate edit form when entering edit mode
+  useEffect(() => {
+    if (editing && restaurant) {
+      setEditForm({
+        name: restaurant.name || '',
+        cuisine: restaurant.cuisine || '',
+        address: restaurant.address || '',
+        city: restaurant.city || '',
+        phone: restaurant.phone || '',
+        website: restaurant.website || '',
+        business_hours: restaurant.business_hours || '',
+        avg_price: restaurant.avg_price?.toString() || '',
+        description: restaurant.description || '',
+        list_type: (restaurant.list_type as 'red' | 'black') || 'red',
+        is_takeout: restaurant.is_takeout || false,
+      });
+    }
+  }, [editing, restaurant]);
 
   useEffect(() => {
     if (!id) return;
@@ -124,6 +153,42 @@ export default function ClientDetail() {
 
   useEffect(() => { fetchFoods(); }, [fetchFoods]);
 
+  const handleUpdateEaten = async (status: 'eaten' | 'not_eaten') => {
+    if (!isAdmin) return;
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('restaurants').update({
+      eaten_status: status,
+      eaten_date: status === 'eaten' ? now : null,
+    }).eq('id', id);
+    if (error) { toast.error('更新失败: ' + error.message); return; }
+    setLocalEatenStatus(status);
+    toast.success(status === 'eaten' ? '已标记为吃过' : '已标记为未吃过');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!isAdmin) return;
+    if (!editForm.name.trim()) { toast.error('餐厅名称不能为空'); return; }
+    setSaving(true);
+    const { error } = await supabase.from('restaurants').update({
+      name: editForm.name.trim(),
+      cuisine: editForm.cuisine || null,
+      address: editForm.address || null,
+      city: editForm.city || null,
+      phone: editForm.phone || null,
+      website: editForm.website || null,
+      business_hours: editForm.business_hours || null,
+      avg_price: editForm.avg_price ? parseFloat(editForm.avg_price) : null,
+      description: editForm.description || null,
+      list_type: editForm.list_type,
+      is_takeout: editForm.is_takeout,
+    }).eq('id', id);
+    if (error) { toast.error('保存失败: ' + error.message); setSaving(false); return; }
+    toast.success('修改已保存');
+    setEditing(false);
+    setSaving(false);
+    window.location.reload();
+  };
+
   const handleAddDish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) { toast.error('请先登录'); return; }
@@ -176,17 +241,6 @@ export default function ClientDetail() {
     setDishImage(file); setDishPreview(URL.createObjectURL(file));
   };
 
-  const handleUpdateEaten = async (status: 'eaten' | 'not_eaten') => {
-    if (!isAdmin) return;
-    const now = new Date().toISOString();
-    const { error } = await supabase.from('restaurants').update({
-      eaten_status: status, eaten_date: status === 'eaten' ? now : null, updated_at: now,
-    }).eq('id', id);
-    if (error) { toast.error('更新失败'); return; }
-    setLocalEatenStatus(status);
-    toast.success(status === 'eaten' ? '已标记为吃过' : '已标记为未吃过');
-  };
-
   if (loading) return <PageLoading />;
   if (!restaurant) return (
     <div className="flex min-h-[60vh] items-center justify-center">
@@ -219,7 +273,8 @@ export default function ClientDetail() {
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {restaurant.cuisine && <span className="rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-xs">{restaurant.cuisine}</span>}
-              {restaurant.is_takeout && <span className="rounded-full bg-yellow-400/30 backdrop-blur px-2.5 py-0.5 text-xs font-medium">🛵 外卖</span>}              {isAdmin ? (
+              {restaurant.is_takeout && <span className="rounded-full bg-yellow-400/30 backdrop-blur px-2.5 py-0.5 text-xs font-medium">🛵 外卖</span>}
+              {isAdmin ? (
                 <>
                   <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateEaten('eaten'); }}
                     className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur transition-all',
@@ -238,7 +293,15 @@ export default function ClientDetail() {
                 {isRed ? '👍 红榜推荐' : '👎 黑榜避雷'}
               </span>
             </div>
-            <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+            {editing ? (
+              <input
+                value={editForm.name}
+                onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
+                className="text-3xl font-bold bg-white/20 rounded-lg px-3 py-1 w-full outline-none border border-white/30"
+              />
+            ) : (
+              <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+            )}
           </div>
         </div>
 
@@ -250,6 +313,85 @@ export default function ClientDetail() {
               ) : (
                 <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="text-sm font-medium text-red-800">已驳回</p><p className="text-xs text-red-600">此餐厅未通过管理员审核。</p></div></>
               )}
+            </div>
+          )}
+
+          {/* Edit form */}
+          {editing && (
+            <div className="mb-6 p-5 rounded-2xl bg-blue-50/50 border border-blue-200">
+              <h3 className="font-bold text-gray-800 mb-4">✏️ 编辑餐厅信息</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">菜系</label>
+                  <select value={editForm.cuisine} onChange={e => setEditForm(p => ({ ...p, cuisine: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:border-blue-500 outline-none">
+                    <option value="">选择菜系</option>
+                    {CUISINE_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">人均 ¥</label>
+                  <input type="number" value={editForm.avg_price}
+                    onChange={e => setEditForm(p => ({ ...p, avg_price: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">城市</label>
+                  <input value={editForm.city} onChange={e => setEditForm(p => ({ ...p, city: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">地址</label>
+                  <input value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">电话</label>
+                  <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">网站</label>
+                  <input value={editForm.website} onChange={e => setEditForm(p => ({ ...p, website: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">营业时间</label>
+                  <input value={editForm.business_hours} onChange={e => setEditForm(p => ({ ...p, business_hours: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none" placeholder="11:00-22:00" />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">红黑榜</label>
+                  <select value={editForm.list_type} onChange={e => setEditForm(p => ({ ...p, list_type: e.target.value as 'red' | 'black' }))}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:border-blue-500 outline-none">
+                    <option value="red">👍 红榜</option>
+                    <option value="black">👎 黑榜</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-[11px] text-gray-500 mb-0.5">简介</label>
+                <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={2}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 outline-none resize-none" />
+              </div>
+              <div className="mb-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={editForm.is_takeout}
+                    onChange={e => setEditForm(p => ({ ...p, is_takeout: e.target.checked }))}
+                    className="rounded" />
+                  🛵 标记为外卖
+                </label>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleSaveEdit} disabled={saving}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  <Save className="h-4 w-4" /> {saving ? '保存中...' : '保存修改'}
+                </button>
+                <button onClick={() => setEditing(false)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                  <XIcon className="h-4 w-4" /> 取消
+                </button>
+              </div>
             </div>
           )}
 
@@ -268,18 +410,28 @@ export default function ClientDetail() {
             <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('链接已复制'); }}
               className="rounded-full bg-gray-50 p-2 text-gray-400 hover:text-gray-600 transition-colors"><Share2 className="h-5 w-5" /></button>
             {isAdmin && (
-              <button onClick={() => { if (confirm('确定删除？')) { supabase.from('restaurants').delete().eq('id', id).then(() => { toast.success('已删除'); window.location.href = '/'; }); } }}
-                className="rounded-full bg-red-50 p-2 text-red-400 hover:bg-red-100 transition-colors"><Trash2 className="h-5 w-5" /></button>
+              <>
+                <button onClick={() => setEditing(!editing)}
+                  className="rounded-full bg-blue-50 p-2 text-blue-500 hover:bg-blue-100 transition-colors" title="编辑">
+                  <Pencil className="h-5 w-5" />
+                </button>
+                <button onClick={() => { if (confirm('确定删除？')) { supabase.from('restaurants').delete().eq('id', id).then(() => { toast.success('已删除'); window.location.href = '/'; }); } }}
+                  className="rounded-full bg-red-50 p-2 text-red-400 hover:bg-red-100 transition-colors"><Trash2 className="h-5 w-5" /></button>
+              </>
             )}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {restaurant.address && <div className="flex items-start gap-2 text-sm"><MapPin className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" /><span className="text-gray-600">{restaurant.address}</span></div>}
-            {restaurant.phone && <div className="flex items-center gap-2 text-sm"><Phone className="h-4 w-4 text-gray-400 shrink-0" /><span className="text-gray-600">{restaurant.phone}</span></div>}
-            {restaurant.website && <div className="flex items-center gap-2 text-sm"><Globe className="h-4 w-4 text-gray-400 shrink-0" /><a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline truncate">{restaurant.website}</a></div>}
-            {restaurant.business_hours && <div className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-gray-400 shrink-0" /><span className="text-gray-600">{restaurant.business_hours}</span></div>}
-          </div>
-          {restaurant.description && <p className="text-sm text-gray-600 leading-relaxed mb-4">{restaurant.description}</p>}
+          {!editing && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {restaurant.address && <div className="flex items-start gap-2 text-sm"><MapPin className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" /><span className="text-gray-600">{restaurant.address}</span></div>}
+                {restaurant.phone && <div className="flex items-center gap-2 text-sm"><Phone className="h-4 w-4 text-gray-400 shrink-0" /><span className="text-gray-600">{restaurant.phone}</span></div>}
+                {restaurant.website && <div className="flex items-center gap-2 text-sm"><Globe className="h-4 w-4 text-gray-400 shrink-0" /><a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline truncate">{restaurant.website}</a></div>}
+                {restaurant.business_hours && <div className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-gray-400 shrink-0" /><span className="text-gray-600">{restaurant.business_hours}</span></div>}
+              </div>
+              {restaurant.description && <p className="text-sm text-gray-600 leading-relaxed mb-4">{restaurant.description}</p>}
+            </>
+          )}
 
           {(restaurant.created_by || restaurant.created_at) && (
             <div className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-gray-50/50">
