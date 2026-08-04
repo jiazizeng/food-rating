@@ -19,13 +19,15 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Use getSession() instead of getUser() - reads cookie directly, no network call
+  // Prevents redirect loops when Supabase API is slow/unreachable from China
+  const { data: { session } } = await supabase.auth.getSession();
 
   // Protected routes
   const protectedPaths = ['/profile', '/add-restaurant', '/admin'];
   const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p));
 
-  if (isProtected && !user) {
+  if (isProtected && !session) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
