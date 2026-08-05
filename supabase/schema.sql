@@ -54,7 +54,7 @@ CREATE TABLE restaurants (
   created_by UUID REFERENCES auth.users(id),
   is_approved BOOLEAN DEFAULT false,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  list_type TEXT CHECK (list_type IN ('red', 'black')),
+  list_type TEXT CHECK (list_type IN ('red', 'black', 'gray')),
   eaten_status TEXT CHECK (eaten_status IN ('eaten', 'not_eaten')),
   reviewed_by UUID REFERENCES auth.users(id),
   red_list_count INTEGER DEFAULT 0,
@@ -99,7 +99,7 @@ CREATE TABLE reviews (
   service_rating INTEGER CHECK (service_rating >= 1 AND service_rating <= 10),
   value_rating INTEGER CHECK (value_rating >= 1 AND value_rating <= 10),
   would_revisit BOOLEAN DEFAULT true,
-  list_type TEXT CHECK (list_type IN ('red', 'black')),
+  list_type TEXT CHECK (list_type IN ('red', 'black', 'gray')),
   title TEXT,
   content TEXT,
   images TEXT[] DEFAULT '{}',
@@ -341,3 +341,9 @@ CREATE POLICY "Users can delete own dish favorites" ON dish_favorites FOR DELETE
 -- Migration v1.3: eaten_date column
 -- ====================================================================
 ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS eaten_date TIMESTAMPTZ;
+
+-- Migration: Add 'gray' to list_type CHECK constraint
+ALTER TABLE restaurants DROP CONSTRAINT IF EXISTS restaurants_list_type_check;
+ALTER TABLE restaurants ADD CONSTRAINT restaurants_list_type_check CHECK (list_type IN ('red', 'black', 'gray'));
+ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_list_type_check;
+ALTER TABLE reviews ADD CONSTRAINT reviews_list_type_check CHECK (list_type IN ('red', 'black', 'gray'));

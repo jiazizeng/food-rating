@@ -5,26 +5,34 @@ import { useEffect, useState } from 'react';
 import type { StatsData } from '@/types';
 import { Loading } from '@/components/shared/Loading';
 import { StarRating } from '@/components/shared/StarRating';
-import { Trophy, TrendingUp, MapPin, Users } from 'lucide-react';
+import { Trophy, TrendingUp, MapPin, Users, MinusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function StatsPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [topGray, setTopGray] = useState<StatsData['topRedRestaurants']>([]);
+  const [grayCount, setGrayCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [
-        { data: topRed }, { data: topBlack }, { data: cities },
-        { count: totalR }, { count: totalRev },
-      ] = await Promise.all([
+      const [topRedRes, topBlackRes, topGrayRes] = await Promise.all([
         supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: false }).limit(10),
         supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: true }).limit(10),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'gray').order('created_at', { ascending: false }).limit(10),
+      ]);
+      const [cityRes, totalRRes, totalRevRes] = await Promise.all([
         supabase.from('restaurants').select('city, avg_rating').eq('status', 'approved'),
         supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('reviews').select('*', { count: 'exact', head: true }),
       ]);
+      const topRed = topRedRes.data;
+      const topBlack = topBlackRes.data;
+      const topGrayData = topGrayRes.data;
+      const cities = cityRes.data;
+      const totalR = totalRRes.count;
+      const totalRev = totalRevRes.count;
 
       // City rankings
       const cityMap: Record<string, { count: number; totalRating: number }> = {};
@@ -38,6 +46,10 @@ export default function StatsPage() {
         .map(([city, data]) => ({ city, count: data.count, avg_rating: data.totalRating / data.count }))
         .sort((a, b) => b.count - a.count);
 
+      if (topGrayData) {
+        setTopGray(topGrayData as StatsData['topRedRestaurants']);
+        setGrayCount(topGrayData.length);
+      }
       setStats({
         topRedRestaurants: (topRed || []) as StatsData['topRedRestaurants'],
         topBlackRestaurants: (topBlack || []) as StatsData['topBlackRestaurants'],
@@ -126,6 +138,32 @@ export default function StatsPage() {
           </div>
         </div>
       </div>
+
+      {/* Gray list */}
+      {topGray.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <MinusCircle className="h-5 w-5 text-gray-600" />
+            <h2 className="text-lg font-bold text-gray-900">灰榜记录 TOP 10</h2>
+          </div>
+          <div className="space-y-3">
+            {topGray.map((r, i) => (
+              <Link key={r.id} href={`/restaurant/${r.id}`}
+                className="flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-4 hover:shadow-sm transition-shadow">
+                <span className="text-2xl font-bold text-gray-300 w-8 text-center">{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{r.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <StarRating rating={Math.round(r.avg_rating)} size="sm" />
+                    <span className="text-xs text-gray-400">{r.review_count} 评价</span>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-600">{r.avg_rating > 0 ? r.avg_rating.toFixed(1) : '-'}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* City rankings */}
       {stats?.cityRankings && stats.cityRankings.length > 0 && (

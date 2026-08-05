@@ -25,7 +25,7 @@ const DIM_LABELS: Record<DimKey, { label: string; desc: string }> = {
 
 export function ReviewForm({ restaurantId, onSuccess, onCancel }: ReviewFormProps) {
   const { user } = useAuth();
-  const [listType, setListType] = useState<'red' | 'black'>('red');
+  const [listType, setListType] = useState<'red' | 'black' | 'gray'>('red');
   const [dims, setDims] = useState<Record<DimKey, number>>({ taste: 0, environment: 0, service: 0, value: 0 });
   const [wouldRevisit, setWouldRevisit] = useState(true);
   const [title, setTitle] = useState('');
@@ -36,13 +36,15 @@ export function ReviewForm({ restaurantId, onSuccess, onCancel }: ReviewFormProp
   const [submitting, setSubmitting] = useState(false);
   const supabase = createClient();
 
-  const tags = listType === 'red' ? RED_TAGS : BLACK_TAGS;
+  const tags = listType === 'red' ? RED_TAGS : listType === 'black' ? BLACK_TAGS : [...RED_TAGS.slice(0, 4), ...BLACK_TAGS.slice(0, 4)];
 
   const getTagClass = (tag: string) => {
     if (selectedTags.includes(tag)) {
       return listType === 'red'
         ? 'bg-green-100 text-green-700 border border-green-300'
-        : 'bg-red-100 text-red-700 border border-red-300';
+        : listType === 'black'
+        ? 'bg-red-100 text-red-700 border border-red-300'
+        : 'bg-gray-100 text-gray-700 border border-gray-300';
     }
     return 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100';
   };
@@ -160,18 +162,24 @@ export function ReviewForm({ restaurantId, onSuccess, onCancel }: ReviewFormProp
       <h3 className="font-bold text-gray-900 text-lg mb-5">发布评价</h3>
 
       {/* List type */}
-      <div className="flex gap-3 mb-5">
+      <div className="flex gap-2 mb-5">
         <button type="button" onClick={() => setListType('red')}
-          className={cn('flex-1 rounded-xl border-2 p-4 text-center transition-all',
+          className={cn('flex-1 rounded-xl border-2 p-3 text-center transition-all',
             listType === 'red' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-green-200')}>
-          <ThumbsUp className={cn('mx-auto h-6 w-6', listType === 'red' ? 'text-green-600' : 'text-gray-300')} />
-          <p className={cn('text-sm font-bold mt-1', listType === 'red' ? 'text-green-700' : 'text-gray-500')}>红榜推荐</p>
+          <ThumbsUp className={cn('mx-auto h-5 w-5', listType === 'red' ? 'text-green-600' : 'text-gray-300')} />
+          <p className={cn('text-xs font-bold mt-1', listType === 'red' ? 'text-green-700' : 'text-gray-500')}>红榜</p>
+        </button>
+        <button type="button" onClick={() => setListType('gray')}
+          className={cn('flex-1 rounded-xl border-2 p-3 text-center transition-all',
+            listType === 'gray' ? 'border-gray-400 bg-gray-50' : 'border-gray-200 bg-white hover:border-gray-300')}>
+          <span className={cn('mx-auto block text-lg', listType === 'gray' ? '' : 'opacity-40')}>📝</span>
+          <p className={cn('text-xs font-bold mt-1', listType === 'gray' ? 'text-gray-700' : 'text-gray-500')}>灰榜</p>
         </button>
         <button type="button" onClick={() => setListType('black')}
-          className={cn('flex-1 rounded-xl border-2 p-4 text-center transition-all',
+          className={cn('flex-1 rounded-xl border-2 p-3 text-center transition-all',
             listType === 'black' ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white hover:border-red-200')}>
-          <ThumbsDown className={cn('mx-auto h-6 w-6', listType === 'black' ? 'text-red-600' : 'text-gray-300')} />
-          <p className={cn('text-sm font-bold mt-1', listType === 'black' ? 'text-red-700' : 'text-gray-500')}>黑榜避雷</p>
+          <ThumbsDown className={cn('mx-auto h-5 w-5', listType === 'black' ? 'text-red-600' : 'text-gray-300')} />
+          <p className={cn('text-xs font-bold mt-1', listType === 'black' ? 'text-red-700' : 'text-gray-500')}>黑榜</p>
         </button>
       </div>
 
@@ -258,7 +266,9 @@ export function ReviewForm({ restaurantId, onSuccess, onCancel }: ReviewFormProp
       <div className="flex gap-3">
         <button type="submit" disabled={submitting}
           className={cn('flex-1 rounded-xl py-3 text-sm font-bold text-white transition-all',
-            listType === 'red' ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600' : 'bg-red-500 hover:bg-red-600',
+            listType === 'red' ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+            : listType === 'black' ? 'bg-red-500 hover:bg-red-600'
+            : 'bg-gray-600 hover:bg-gray-700',
             submitting && 'opacity-50')}>
           {submitting ? '发布中...' : '发布评价'}
         </button>

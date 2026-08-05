@@ -122,6 +122,7 @@ export function ProfilePanel() {
   }
 
   const redCount = myReviews.filter(r => r.list_type === 'red').length;
+  const grayCount = myReviews.filter(r => r.list_type === 'gray').length;
   const blackCount = myReviews.filter(r => r.list_type === 'black').length;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -175,8 +176,8 @@ export function ProfilePanel() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="font-medium text-gray-900">{restaurant?.name || '未知餐厅'}</span>
-                      <span className={cn('ml-2 text-xs font-bold', review.list_type === 'red' ? 'text-green-600' : 'text-red-600')}>
-                        {review.list_type === 'red' ? '红榜' : '黑榜'}
+                      <span className={cn('ml-2 text-xs font-bold', review.list_type === 'red' ? 'text-green-600' : review.list_type === 'black' ? 'text-red-600' : 'text-gray-600')}>
+                        {review.list_type === 'red' ? '红榜' : review.list_type === 'black' ? '黑榜' : '灰榜'}
                       </span>
                     </div>
                     <StarRating rating={review.rating} size="sm" />
@@ -265,20 +266,25 @@ export function ProfilePanel() {
 
       {/* Contributions tab */}
       {activeTab === 'contributions' && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-green-100 bg-green-50/30 p-6 text-center">
-            <ThumbsUp className="mx-auto h-8 w-8 text-green-500 mb-2" />
-            <p className="text-3xl font-bold text-green-600">{redCount}</p>
-            <p className="text-sm text-green-500 mt-1">红榜贡献</p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-green-100 bg-green-50/30 p-5 text-center">
+            <ThumbsUp className="mx-auto h-7 w-7 text-green-500 mb-2" />
+            <p className="text-2xl font-bold text-green-600">{redCount}</p>
+            <p className="text-xs text-green-500 mt-1">红榜贡献</p>
           </div>
-          <div className="rounded-xl border border-red-100 bg-red-50/30 p-6 text-center">
-            <ThumbsDown className="mx-auto h-8 w-8 text-red-500 mb-2" />
-            <p className="text-3xl font-bold text-red-600">{blackCount}</p>
-            <p className="text-sm text-red-500 mt-1">黑榜贡献</p>
+          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 text-center">
+            <span className="mx-auto block text-2xl mb-1">📝</span>
+            <p className="text-2xl font-bold text-gray-600">{grayCount}</p>
+            <p className="text-xs text-gray-500 mt-1">灰榜记录</p>
           </div>
-          <div className="col-span-2 rounded-xl border border-blue-100 bg-blue-50/30 p-6 text-center">
-            <p className="text-3xl font-bold text-blue-600">{myFavorites.length}</p>
-            <p className="text-sm text-blue-500 mt-1">收藏餐厅</p>
+          <div className="rounded-xl border border-red-100 bg-red-50/30 p-5 text-center">
+            <ThumbsDown className="mx-auto h-7 w-7 text-red-500 mb-2" />
+            <p className="text-2xl font-bold text-red-600">{blackCount}</p>
+            <p className="text-xs text-red-500 mt-1">黑榜贡献</p>
+          </div>
+          <div className="col-span-3 rounded-xl border border-blue-100 bg-blue-50/30 p-5 text-center">
+            <p className="text-2xl font-bold text-blue-600">{myFavorites.length}</p>
+            <p className="text-xs text-blue-500 mt-1">收藏餐厅</p>
           </div>
         </div>
       )}

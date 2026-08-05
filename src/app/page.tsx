@@ -17,6 +17,7 @@ import {
 
 export default function HomePage() {
   const [topRestaurants, setTopRestaurants] = useState<Restaurant[]>([]);
+  const [grayRestaurants, setGrayRestaurants] = useState<Restaurant[]>([]);
   const [blackRestaurants, setBlackRestaurants] = useState<Restaurant[]>([]);
   const [latestReviews, setLatestReviews] = useState<Review[]>([]);
   const [reviewProfiles, setReviewProfiles] = useState<Record<string, { display_name?: string; username?: string }>>({});
@@ -30,15 +31,17 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [topR, blackR, revR, foodR] = await Promise.all([
+      const [topR, grayR2, blackR2, revR, foodR] = await Promise.all([
         supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: false }).limit(6),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'gray').order('created_at', { ascending: false }).limit(6),
         supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: true }).limit(4),
         supabase.from('reviews').select('*').eq('is_approved', true).order('created_at', { ascending: false }).limit(6),
         supabase.from('foods').select('*').order('rating', { ascending: false }).limit(6),
       ]);
 
       if (topR.data) setTopRestaurants(topR.data as Restaurant[]);
-      if (blackR.data) setBlackRestaurants(blackR.data as Restaurant[]);
+      if (grayR2.data) setGrayRestaurants(grayR2.data as Restaurant[]);
+      if (blackR2.data) setBlackRestaurants(blackR2.data as Restaurant[]);
 
       if (foodR.data && foodR.data.length > 0) {
         const foods = foodR.data as Food[];
@@ -145,6 +148,29 @@ export default function HomePage() {
         </section>
 
         {/* 避雷提醒 */}
+        {/* Gray section */}
+        {grayRestaurants.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100">
+                  <span className="text-[18px]">📝</span>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">灰榜记录</h2>
+                  <p className="text-xs text-gray-400">待尝试或中等评价</p>
+                </div>
+              </div>
+              <Link href="/gray-list" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-800 font-medium group">
+                查看全部 <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {grayRestaurants.slice(0, 6).map(r => <RestaurantCard key={r.id} restaurant={r} listType="gray" />)}
+            </div>
+          </section>
+        )}
+
         {blackRestaurants.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-6">
