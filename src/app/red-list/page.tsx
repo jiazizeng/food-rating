@@ -5,8 +5,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { Loading } from '@/components/shared/Loading';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Pagination } from '@/components/shared/Pagination';
-import { CUISINE_TYPES } from '@/lib/constants';
-import { ITEMS_PER_PAGE } from '@/lib/constants';
+import { CUISINE_TYPES, ITEMS_PER_PAGE } from '@/lib/constants';
 import { ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 
