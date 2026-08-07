@@ -81,19 +81,20 @@ export function getNavigationUrls(
   const encodedName = encodeURIComponent(searchText);
 
   // If we have coordinates, use precise navigation
+  // Only pass coordinates — let the map app resolve its own label (avoids duplicate name+address display)
   if (lat != null && lng != null) {
     return [
       {
         name: 'gaode',
         label: '高德地图',
         icon: '🗺️',
-        url: `https://uri.amap.com/navigation?to=${lng},${lat},${encodedName}&mode=car&callnative=1`,
+        url: `https://uri.amap.com/navigation?to=${lng},${lat}&mode=car&callnative=1`,
       },
       {
         name: 'baidu',
         label: '百度地图',
         icon: '📍',
-        url: `https://api.map.baidu.com/direction?destination=latlng:${lat},${lng}|name:${encodedName}&mode=driving&output=html&src=food-rating`,
+        url: `https://api.map.baidu.com/direction?destination=${lat},${lng}&mode=driving&output=html&src=food-rating`,
       },
       {
         name: 'apple',
