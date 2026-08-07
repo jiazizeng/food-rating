@@ -16,6 +16,7 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-gray-900 mb-3">浏览</h4>
             <div className="flex flex-col gap-1.5">
               <Link href="/red-list" className="text-xs text-gray-500 hover:text-green-600">美食红榜</Link>
+              <Link href="/gray-list" className="text-xs text-gray-500 hover:text-gray-700">灰榜记录</Link>
               <Link href="/black-list" className="text-xs text-gray-500 hover:text-red-600">避雷黑榜</Link>
               <Link href="/map" className="text-xs text-gray-500 hover:text-blue-600">美食地图</Link>
               <Link href="/stats" className="text-xs text-gray-500 hover:text-purple-600">数据统计</Link>
@@ -29,16 +30,16 @@ export function Footer() {
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">关于</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">声明</h4>
             <p className="text-xs text-gray-500 leading-relaxed">
-              本站数据来自用户贡献，<br />
-              仅供参考。<br />
-              发现违规内容请及时举报。
+              本站为个人使用，<br />
+              所有评价仅代表个人观点。<br />
+              数据来自用户贡献，仅供参考。
             </p>
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-gray-50 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+          本站仅供个人使用 · 观点仅代表个人 · © {new Date().getFullYear()} {APP_NAME}
         </div>
       </div>
     </footer>

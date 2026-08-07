@@ -27,11 +27,11 @@ export default function TakeoutPage() {
       .order('created_at', { ascending: false });
 
     if (tab === 'red') {
-      query = query.or('list_type.eq.red,and(avg_rating.gt.3.5)');
+      query = query.eq('list_type', 'red');
     } else if (tab === 'gray') {
-      query = query.or('list_type.eq.gray,and(avg_rating.gte.2.5,avg_rating.lte.3.5)');
+      query = query.eq('list_type', 'gray');
     } else if (tab === 'black') {
-      query = query.or('list_type.eq.black,and(avg_rating.lt.2.5)');
+      query = query.eq('list_type', 'black');
     }
     if (cuisine) query = query.eq('cuisine', cuisine);
     if (city) query = query.ilike('city', `%${city}%`);

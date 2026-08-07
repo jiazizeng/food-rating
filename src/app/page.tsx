@@ -32,9 +32,9 @@ export default function HomePage() {
   useEffect(() => {
     const fetchAll = async () => {
       const [topR, grayR2, blackR2, revR, foodR] = await Promise.all([
-        supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: false }).limit(6),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'red').order('avg_rating', { ascending: false }).limit(6),
         supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'gray').order('created_at', { ascending: false }).limit(6),
-        supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: true }).limit(4),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'black').order('avg_rating', { ascending: true }).limit(4),
         supabase.from('reviews').select('*').eq('is_approved', true).order('created_at', { ascending: false }).limit(6),
         supabase.from('foods').select('*').order('rating', { ascending: false }).limit(6),
       ]);

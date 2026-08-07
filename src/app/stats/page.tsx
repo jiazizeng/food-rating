@@ -18,8 +18,8 @@ export default function StatsPage() {
   useEffect(() => {
     const fetchStats = async () => {
       const [topRedRes, topBlackRes, topGrayRes] = await Promise.all([
-        supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: false }).limit(10),
-        supabase.from('restaurants').select('*').eq('status', 'approved').order('avg_rating', { ascending: true }).limit(10),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'red').order('avg_rating', { ascending: false }).limit(10),
+        supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'black').order('avg_rating', { ascending: true }).limit(10),
         supabase.from('restaurants').select('*').eq('status', 'approved').eq('list_type', 'gray').order('created_at', { ascending: false }).limit(10),
       ]);
       const [cityRes, totalRRes, totalRevRes] = await Promise.all([
