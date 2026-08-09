@@ -79,7 +79,7 @@ export function getNavigationUrls(
 ): MapAppOption[] {
   // Use restaurant name as the primary search keyword — city for disambiguation
   // Never pass coordinates to avoid map app showing duplicate "name + resolved address"
-  const keyword = name || address || "目的地";
+  const keyword = address || name || "目的地";
   const encoded = encodeURIComponent(keyword || '目的地');
 
   return [
